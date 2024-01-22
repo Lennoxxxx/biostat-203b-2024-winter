@@ -1,7 +1,7 @@
 ---
 title: "Biostat 203B Homework 1"
 subtitle: Due Jan 26, 2024 @ 11:59PM
-author: Your Name and UID
+author: Wenbo Zhao UID:806074910
 format:
   html:
     theme: cosmo
@@ -23,7 +23,6 @@ knitr:
 
 Display machine information for reproducibility:
 ```{r}
-#| eval: false
 sessionInfo()
 ```
 
@@ -45,36 +44,111 @@ sessionInfo()
 
 This exercise (and later in this course) uses the [MIMIC-IV data v2.2](https://physionet.org/content/mimiciv/2.2/), a freely accessible critical care database developed by the MIT Lab for Computational Physiology. Follow the instructions at <https://mimic.mit.edu/docs/gettingstarted/> to (1) complete the CITI `Data or Specimens Only Research` course and (2) obtain the PhysioNet credential for using the MIMIC-IV data. Display the verification links to your completion report and completion certificate here. **You must complete Q2 before working on the remaining questions.** (Hint: The CITI training takes a few hours and the PhysioNet credentialing takes a couple days; do not leave it to the last minute.)
 
+
+**Answer:** I have completed the CITI training on 14-Jan-2024. The completion report is available [here](https://www.citiprogram.org/verify/?kdde2e959-bec1-4481-b543-1915ef10c645-60503679)
+and the certificate is available [here](https://www.citiprogram.org/verify/?w57e77a89-2381-48a5-88b8-8e43235c1b68-60503679).
+
+
 ## Q3. Linux Shell Commands
 
 1. Make the MIMIC v2.2 data available at location `~/mimic`. 
 ```{bash}
-#| eval: false
 ls -l ~/mimic/
 ```
 Refer to the documentation <https://physionet.org/content/mimiciv/2.2/> for details of data files. Please, do **not** put these data files into Git; they are big. Do **not** copy them into your directory. Do **not** decompress the gz data files. These create unnecessary big files and are not big-data-friendly practices. Read from the data folder `~/mimic` directly in following exercises. 
 
   Use Bash commands to answer following questions.
 
-2. Display the contents in the folders `hosp` and `icu` using Bash command `ls -l`. Why are these data files distributed as `.csv.gz` files instead of `.csv` (comma separated values) files? Read the page <https://mimic.mit.edu/docs/iv/> to understand what's in each folder.
+2. c in the folders `hosp` and `icu` using Bash command `ls -l`. Why are these data files distributed as `.csv.gz` files instead of `.csv` (comma separated values) files? Read the page <https://mimic.mit.edu/docs/iv/> to understand what's in each folder.
+
+```{bash}
+ls -l ~/mimic/hosp/
+ls -l ~/mimic/icu/
+```
+
+**Answer:** `.csv.gz` files is the compressed version of `.csv` files, which is the standard practice in data distribution. The reason to compress the dataset is to reduces the file size, which can improve efficiency in terms of data transfer and storage. Also this approach can preserve the integrity.
+
 
 3. Briefly describe what Bash commands `zcat`, `zless`, `zmore`, and `zgrep` do.
 
+**Answer:** Similar to the commands working with text files, these commands are designed to manipulate `.gz` files.
+
+`zcat:` It displays the contents of gzip-compressed files without decompressing them to the disk.
+
+`zless:` A version of the `less` command that works with gzip-compressed files. It allows you to view the contents of compressed files one screen at a time. 
+
+`zmore:` A version of the `more` command for gzip-compressed files. It also lets you view the contents of compressed files page by page, but with less functions than `zless`.
+
+`zgrep:` It searches for patterns in gzip-compressed files without decompressing them first. 
+
+
 4. (Looping in Bash) What's the output of the following bash script?
 ```{bash}
-#| eval: false
 for datafile in ~/mimic/hosp/{a,l,pa}*.gz
 do
   ls -l $datafile
 done
 ```
+**Answer:** Display the contents of `.gz` file in `hosp` folder stating with a, l and pa.
+
 Display the number of lines in each data file using a similar loop. (Hint: combine linux commands `zcat <` and `wc -l`.)
+```{bash}
+for datafile in ~/mimic/hosp/{a,l,pa}*.gz
+do
+  echo $datafile
+  zcat $datafile | wc -l
+done
+```
 
 5. Display the first few lines of `admissions.csv.gz`. How many rows are in this data file? How many unique patients (identified by `subject_id`) are in this data file? Do they match the number of patients listed in the `patients.csv.gz` file? (Hint: combine Linux commands `zcat <`, `head`/`tail`, `awk`, `sort`, `uniq`, `wc`, and so on.)
+```{bash}
+echo "The first few lines of admissions.csv.gz."
+zcat ~/mimic/hosp/admissions.csv.gz | head -5
+echo "Number of rows in this data file(including header):"
+zcat ~/mimic/hosp/admissions.csv.gz | wc -l
+echo "Unique patients in this data file:"
+zcat ~/mimic/hosp/admissions.csv.gz | tail -n +2 | awk -F, '{print $1}' | sort | uniq | wc -l
+echo "This number doesn't match the number of patients listed in the patients.csv.gz file."
+zcat ~/mimic/hosp/patients.csv.gz | tail -n +2 | awk -F, '{print $1}' | sort | uniq | wc -l
+
+```
 
 6. What are the possible values taken by each of the variable `admission_type`, `admission_location`, `insurance`, and `ethnicity`? Also report the count for each unique value of these variables. (Hint: combine Linux commands `zcat`, `head`/`tail`, `awk`, `uniq -c`, `wc`, and so on; skip the header line.)
+```{bash}
+echo "admission_type"
+zcat  ~/mimic/hosp/admissions.csv.gz | tail -n +2 | awk -F, '{print $6}' | sort | uniq -c
+```
+```{bash}
+echo "admission_location"
+zcat  ~/mimic/hosp/admissions.csv.gz | tail -n +2 | awk -F, '{print $8}' | sort | uniq -c
+```
+```{bash}
+echo "insurance"
+zcat  ~/mimic/hosp/admissions.csv.gz | tail -n +2 | awk -F, '{print $10}' | sort | uniq -c
+```
+```{bash}
+echo "race"
+zcat  ~/mimic/hosp/admissions.csv.gz | tail -n +2 | awk -F, '{print $13}' | sort | uniq -c
+```
 
 7. _To compress, or not to compress. That's the question._ Let's focus on the big data file `labevents.csv.gz`. Compare compressed gz file size to the uncompressed file size. Compare the run times of `zcat < ~/mimic/labevents.csv.gz | wc -l` versus `wc -l labevents.csv`. Discuss the trade off between storage and speed for big data files. (Hint: `gzip -dk < FILENAME.gz > ./FILENAME`. Remember to delete the large `labevents.csv` file after the exercise.)
+
+```{bash}
+gzip -dk ~/mimic/hosp/labevents.csv.gz
+```
+```{bash}
+ls -lh ~/mimic/hosp/labevents.csv.gz
+ls -lh ~/mimic/hosp/labevents.csv
+```
+```{bash}
+time zcat < ~/mimic/hosp/labevents.csv.gz | wc -l
+time wc -l ~/mimic/hosp/labevents.csv
+```
+```{bash}
+rm ~/mimic/hosp/labevents.csv
+```
+
+**Answer:** From the bash output, we can see that uncompressed file size is significantly larger than the compressed file. As for the run times, reading data from a compressed file generally takes longer because the data must be decompressed first. When space is a premium or when transferring data over networks, compression is beneficial. However, for frequently accessed data where read speed is crucial, keeping an uncompressed version might be more efficient.
 
 ## Q4. Who's popular in Price and Prejudice
 
@@ -83,14 +157,17 @@ Display the number of lines in each data file using a similar loop. (Hint: combi
 #| eval: false
 wget -nc http://www.gutenberg.org/cache/epub/42671/pg42671.txt
 ```
-Explain what `wget -nc` does. Do **not** put this text file `pg42671.txt` in Git. Complete the following loop to tabulate the number of times each of the four characters is mentioned using Linux commands.
+Explain what `wget -nc` does.
+
+**Answer:** `wget` invokes the wget program, which initiates the file download. `-nc` prevents `wget` from downloading and overwriting existing files.
+
+Do **not** put this text file `pg42671.txt` in Git. Complete the following loop to tabulate the number of times each of the four characters is mentioned using Linux commands.
 ```{bash}
-#| eval: false
 wget -nc http://www.gutenberg.org/cache/epub/42671/pg42671.txt
 for char in Elizabeth Jane Lydia Darcy
 do
   echo $char:
-  # some bash commands here
+  cat pg42671.txt | grep -o $char | wc -l 
 done
 ```
 
@@ -104,6 +181,13 @@ and
 #| eval: false
 echo 'hello, world' >> test2.txt
 ```
+**Answer:**
+
+The first command with `>` will redirect the output of the `echo` command to `test1.txt`. If `test1.txt` already exists, this command will overwrite the file, replacing its contents with "hello, world".
+
+The next command with `>>` will add the output of the `echo` command to `test2.txt`. If `test2.txt` already exists, this command will add "hello, world" to the end of the file.
+
+If `.txt` does not exist, both commands will create the file and write "hello, world" into it.
 
 3. Using your favorite text editor (e.g., `vi`), type the following and save the file as `middle.sh`:
 ```{bash eval=FALSE}
@@ -114,14 +198,74 @@ head -n "$2" "$1" | tail -n "$3"
 ```
 Using `chmod` to make the file executable by the owner, and run
 ```{bash}
-#| eval: false
+chmod +x middle.sh
 ./middle.sh pg42671.txt 20 5
 ```
 Explain the output. Explain the meaning of `"$1"`, `"$2"`, and `"$3"` in this shell script. Why do we need the first line of the shell script?
 
+**Answer:** The script displays lines 16 to 20 of `pg42671.txt`. In shell script, `"$1"` is the filename. `"$2"` is the end_line, which indicates that we first select the first `$2` lines using `head`. `"$3"` is the num_lines, representing the number of lines we want to display to the end line we selected. 
+
 ## Q5. More fun with Linux
 
 Try following commands in Bash and interpret the results: `cal`, `cal 2024`, `cal 9 1752` (anything unusual?), `date`, `hostname`, `arch`, `uname -a`, `uptime`, `who am i`, `who`, `w`, `id`, `last | head`, `echo {con,pre}{sent,fer}{s,ed}`, `time sleep 5`, `history | tail`.
+```{bash}
+cal
+cal 2024
+cal 9 1752
+date
+```
+`cal`: A command to display the calendar for the current month, but you can also specify the year or the year and month to display.
+
+`cal 9 1752`: This command is known for its unusual output because the British Empire adopted the Gregorian calendar in September 1752, and as a result, the days from September 3rd to September 13th were skipped.
+
+`date` displays the current date and time.
+
+```{bash}
+hostname
+arch
+uname -a
+uptime
+```
+`hostname` : Shows the name of the computer system.
+
+`arch`: Displays the architecture of the processor in your machine (e.g., x86_64).
+
+`uname -a`: Provides detailed information about your system, including kernel name, version, machine architecture, and more.
+
+`uptime`: Shows how long the system has been running, including the current time, how many users are logged in, and the system load averages for the past 1, 5, and 15 minutes.
+
+```{bash}
+who am i
+who
+w
+id
+last | head
+```
+`who am i`: Displays your current user name and information about your current terminal session.
+
+`who`: Lists all users currently logged into the system.
+
+`w`: Similar to who, but provides more details such as what users are doing.
+
+`id`: Displays the user and group IDs of the current user.
+
+`last | head`: Shows the last few logins in the system, limited by head to the first few lines.
+
+```{bash}
+echo {con,pre}{sent,fer}{s,ed}
+```
+`echo {con,pre}{sent,fer}{s,ed}`: This is an example of brace expansion in Bash. It expands to all possible combinations of the given sets.
+
+```{bash}
+time sleep 5
+```
+`time sleep 5`: This will make the terminal wait for 5 seconds (`sleep 5`), and `time` will report how long the command took to execute.
+
+```{bash}
+history | tail
+```
+
+`history | tail`: Lists the last few commands you've executed in the terminal.
 
 ## Q6. Book
 
@@ -132,3 +276,4 @@ Try following commands in Bash and interpret the results: `cal`, `cal 2024`, `ca
 The point of this exercise is (1) to get the book for free and (2) to see an example how a complicated project such as a book can be organized in a reproducible way.
 
 For grading purpose, include a screenshot of Section 4.1.5 of the book here.
+![Section 4.1.5](415.png)
