@@ -38,6 +38,8 @@ library(memuse)
 library(pryr)
 library(R.utils)
 library(tidyverse)
+library(lubridate)
+library(duckdb)
 ```
 
 Display memory information of your computer
@@ -218,6 +220,9 @@ Display the first 10 lines of the new file `labevents_filtered.csv.gz`. How many
 filtered_time <- system.time({
   labevents_filtered <- read_csv("labevents_filtered.csv.gz", 
                                  show_col_types = FALSE)
+  #set correct time zone
+  labevents_filtered$charttime <- with_tz(labevents_filtered$charttime, 
+                                     tzone = "America/Los_Angeles")
 })["elapsed"]
 
 print(paste("Processing Time:", filtered_time))
@@ -230,6 +235,13 @@ print(paste("Total number of rows:", total_rows))
 head(labevents_filtered, n = 10)
 ```
 
+*Notice that we need to modify the default timezone setting of dataset to make it align with our system timezone. Since the default timezone setting of dataset is in UTC and our system is in America/Los_Angeles, the `charttime` column will have a 7 hours difference.*
+
+```{r}
+timezone <- attr(labevents_filtered$charttime, "tzone")
+print(paste("Dataset timezone:", timezone))
+print(paste("System timezone:", Sys.timezone()))
+```
 
 ### Q2.4 Ingest `labevents.csv` by Apache Arrow
 
@@ -333,7 +345,6 @@ rm(list = ls())
 ```
 
 ```{r}
-library(duckdb)
 duckdb_time <- system.time({
   labevents_parquet <- open_dataset("labevents_parquet", format = "parquet")
   duckdb_dataset <- arrow::to_duckdb(labevents_parquet)
@@ -346,6 +357,9 @@ duckdb_time <- system.time({
   
   # Collect the data into a tibble
   duckdb_tibble <- duckdb_data %>% collect()
+  duckdb_tibble$charttime <- with_tz(duckdb_tibble$charttime, 
+                                     tzone = "America/Los_Angeles")
+  
 })["elapsed"]
 
 ```
@@ -359,7 +373,7 @@ print(paste("Number of rows:", num_rows))
 ```{r}
 head(duckdb_tibble, 10)
 ```
-Notice that due to the parallel processing of DuckDB, it may return non-deterministic result. We can use sorting to get rid of uncertainty. 
+*Notice that due to the parallel processing of DuckDB, it may return non-deterministic result. We can use sorting to get rid of uncertainty.* 
 
 
 Write a few sentences to explain what is DuckDB. Imagine you want to explain it to a layman in an elevator.
@@ -396,7 +410,7 @@ dataset <- open_dataset("chartevents.csv", format = "csv")
 write_dataset(dataset, "chartevents_parquet", format = "parquet")
 ```
 
-Read read the parquet format data and filter.
+Read the parquet format data and filter.
 ```{r}
 chartevents_parquet <- open_dataset("chartevents_parquet", format = "parquet")
   
