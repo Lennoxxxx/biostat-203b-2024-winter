@@ -11,8 +11,19 @@ format:
     toc-depth: 4
     toc-location: left
     code-fold: false
+knitr:
+  opts_chunk: 
+    cache: false    
+    echo: true
+    fig.align: 'center'
+    fig.width: 6
+    fig.height: 4
+    message: FALSE
 execute:
-  eval: false    
+  eval: true    
+editor_options: 
+  chunk_output_type: inline
+  
 ---
 
 Display machine information for reproducibility:
@@ -163,7 +174,8 @@ selected_procedures <- procedures_icd_data %>%
   select(subject_id, hadm_id, chartdate, icd_code, long_title)
 
 selected_procedures$procedure_type <- as.factor(selected_procedures$long_title) 
-selected_procedures$chartdate <- as.POSIXct(selected_procedures$chartdate, tz = "UTC")
+selected_procedures$chartdate <- as.POSIXct(selected_procedures$chartdate, 
+                                            tz = "UTC")
 
 ```
 
@@ -186,16 +198,18 @@ Plot the graph:
 # Plot
 ggplot() +
   # ADT
-  geom_segment(data = adt_transfer_data, aes(x = event_start, xend = event_end, y = 'ADT', yend = 'ADT', 
-                                             color = careunit, size = icu_ccu), 
-               show.legend = TRUE) +
+  geom_segment(data = adt_transfer_data, 
+               aes(x = event_start, xend = event_end,y = 'ADT', yend = 'ADT', 
+                   color = careunit, size = icu_ccu), show.legend = TRUE) +
   scale_size_manual(values = c("ICU/CCU" = 5.0, "Other" = 1.0), guide = FALSE) +
   
   # LAB
-  geom_point(data = lab_data, aes(x = charttime, y = 'LAB'), shape = 3, size = 3, show.legend = FALSE) +
+  geom_point(data = lab_data, aes(x = charttime, y = 'LAB'), 
+             shape = 3, size = 3, show.legend = FALSE) +
   
   # Procedure
-  geom_point(data = selected_procedures, aes(x = chartdate, y = 'Procedure', shape = procedure_type), 
+  geom_point(data = selected_procedures, 
+             aes(x = chartdate, y = 'Procedure', shape = procedure_type), 
              size = 3, show.legend = TRUE) +
   
   labs(title = title, subtitle = subtitle, x = "Calendar Time", y = "") +
@@ -203,8 +217,11 @@ ggplot() +
         legend.box = "vertical", 
         legend.box.background = element_rect(colour = "transparent"), 
         legend.margin = margin(t = 0, unit = "cm")) +
-  guides(color = guide_legend(title = "Care Unit", override.aes = list(shape = NA), ncol = 3),
-         shape = guide_legend(title = "Procedure", , override.aes = list(linetype = "blank", size = 3), ncol = 1)) +
+  guides(color = guide_legend(title = "Care Unit", 
+                              override.aes = list(shape = NA), ncol = 3),
+         shape = guide_legend(title = "Procedure", 
+                              override.aes = list(linetype = "blank", size = 3), 
+                              ncol = 1)) +
   scale_y_discrete(limits = c("ADT", "LAB", "Procedure"))
 
 ```
@@ -216,7 +233,53 @@ ICU stays are a subset of ADT history. This figure shows the vitals of the patie
 
 ![](10001217_icu.png)
 
-Do a similar visualization for the patient `10013310`.
+**ANSWER:**
+Read chartevent data:
+```{r}
+#Read chartevent data
+chartevents_parquet <- open_dataset("chartevents_parquet", format = "parquet")
+  
+parquet_data <- chartevents_parquet %>%
+  select(subject_id, stay_id, itemid, charttime, valuenum) %>%
+  filter(itemid %in% c(220045, 220181, 220179, 223761, 220210)) 
+
+chartevents_tibble <- parquet_data %>% collect()
+
+d_items_data <- read_csv("~/mimic/icu/d_items.csv.gz")
+d_items_data <- d_items_data %>%
+  select(itemid, label, abbreviation)
+ICU_stays_data <- chartevents_tibble %>%
+  left_join(d_items_data, by = "itemid")
+```
+
+```{r}
+#| eval: false
+ICU_stays_data
+```
+Extract patient data based on `subject_id`:
+```{r}
+#Extract patient data
+id <- 10013310
+#id <- 10001217
+patient_icu_stay <- ICU_stays_data %>%
+  filter(subject_id == id)
+```
+
+For this plot, the point plot is abandoned for better readability.
+```{r}
+ggplot(data = patient_icu_stay) + 
+  geom_line(mapping = aes(x = charttime, y = valuenum, color = abbreviation)) +
+  #geom_point(mapping = aes(x = charttime, y = valuenum, 
+  #color = abbreviation), size = 1) + 
+  facet_grid(abbreviation ~ stay_id, scales = "free") +
+  labs(title = paste("Patient", id, "ICU stays - Vitals"),
+       x = "Time",
+       y = "Vital Value") +
+  theme() +
+  theme(legend.position = "none") + 
+  guides(x = guide_axis(n.dodge = 2))
+
+```
 
 ## Q2. ICU stays
 
