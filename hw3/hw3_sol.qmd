@@ -291,10 +291,42 @@ zcat < ~/mimic/icu/icustays.csv.gz | head
 ### Q2.1 Ingestion
 
 Import `icustays.csv.gz` as a tibble `icustays_tble`. 
+```{r}
+icustays_tble <- read_csv("~/mimic/icu/icustays.csv.gz")
+icustays_tble
+```
+
 
 ### Q2.2 Summary and visualization
 
 How many unique `subject_id`? Can a `subject_id` have multiple ICU stays? Summarize the number of ICU stays per `subject_id` by graphs. 
+```{r}
+unique_subjects <- icustays_tble %>% 
+  summarise(unique_subjects = n_distinct(subject_id))
+print(unique_subjects)
+```
+**ANSWER:** There are 50,920 unique `subject_id` in total.
+
+```{r}
+icu_stays_summary <- icustays_tble %>%
+  group_by(subject_id) %>%
+  summarise(icu_stays = n_distinct(stay_id)) %>%
+  ungroup() 
+
+head(icu_stays_summary 
+     %>% arrange(desc(icu_stays)))
+```
+**ANSWER:** A `subject_id` can have multiple ICU stays.
+
+```{r}
+ggplot(icu_stays_summary, aes(x = icu_stays)) +
+  geom_histogram(binwidth = 1, fill = "blue") +
+  theme_bw() +
+  labs(title = "Number of ICU Stays per Subject",
+       x = "Number of ICU Stays",
+       y = "Count of Subjects")
+```
+**ANSWER:** According to this graph summary, most of subjects have a number of ICU Stays less than 3. Number of ICU Stays equals to 1 takes up a significant portion.
 
 ## Q3. `admissions` data
 
@@ -306,6 +338,10 @@ zcat < ~/mimic/hosp/admissions.csv.gz | head
 ### Q3.1 Ingestion
 
 Import `admissions.csv.gz` as a tibble `admissions_tble`.
+```{r}
+admissions_tble <- read_csv("~/mimic/hosp/admissions.csv.gz")
+#head(admissions_tble)
+```
 
 ### Q3.2 Summary and visualization
 
@@ -314,7 +350,65 @@ Summarize the following information by graphics and explain any patterns you see
 - number of admissions per patient  
 - admission hour (anything unusual?)  
 - admission minute (anything unusual?)  
-- length of hospital stay (from admission to discharge) (anything unusual?)  
+- length of hospital stay (from admission to discharge) (anything unusual?) 
+
+```{r}
+#number of admissions per patient 
+admissions_summary <- admissions_tble %>%
+  group_by(subject_id) %>%
+  summarise(admissions = n_distinct(hadm_id)) %>%
+  ungroup() 
+
+ggplot(admissions_summary, aes(x = admissions)) +
+  geom_histogram(binwidth = 1, fill = "blue") +
+  theme_bw() +
+  labs(title = "Number of Admissions per Patient",
+       x = "Number of Admissions",
+       y = "Count of Patients")
+```
+**ANSWER:** 1. Number of patients keeps decreasing as the number of admissions increases. Most of patients have number of admissions which is less than 25.
+
+```{r}
+#admission hour
+admission_time_summary <- admissions_tble %>%
+  mutate(admission_hour = hour(admittime),
+         admission_minute = minute(admittime),
+         length_of_stay = as.numeric(difftime(dischtime, admittime, units = "days")))
+
+ggplot(admission_time_summary, aes(x = admission_hour)) +
+  geom_histogram(bins = 24, fill = "cornflowerblue", color = "black") +
+  labs(title = "Distribution of Admission Hours",
+       x = "Hour of the Day",
+       y = "Frequency") +
+  theme_bw()
+
+#timezone <- attr(admissions_tble$admittime, "tzone")
+#print(paste("Dataset timezone:", timezone))
+
+```
+**ANSWER:** 2. For admission hour, the dips appears in late evening after 2am and hour around 8 to 13. There is a peak in 7am which may reflect the routine admission activity of hospitals. The peaks during the evening hours might be unusual as they suggest a high volume of admissions outside the typical working hours of elective procedures. It might indicate a large number of emergency admissions during these times.
+
+```{r}
+# Visualize Admission Minute
+ggplot(admission_time_summary, aes(x = admission_minute)) +
+  geom_histogram(bins = 60, fill = "lightgreen", color = "black") +
+  labs(title = "Distribution of Admission Minutes",
+       x = "Minute of the Hour",
+       y = "Frequency") +
+  theme_bw()
+```
+**ANSWER:** 3. This graph depicts the distribution of admission minutes. There are significant spikes at the 0-minute mark and smaller ones at 15, 30, and 45 minutes after the hour. This pattern suggests that admissions are often recorded on the hour or at 15-minute intervals.
+
+```{r}
+# Visualize Length of Hospital Stay
+ggplot(admission_time_summary, aes(x = length_of_stay)) +
+  geom_histogram(binwidth = 1, fill = "salmon", color = "black") +
+  labs(title = "Distribution of Length of Hospital Stay",
+       x = "Length of Stay (Days)",
+       y = "Frequency") +
+  theme_bw()
+```
+**ANSWER:** 4. This graph indicates a long tail distribution of the hospital stay length. Most of patients stay in hospital for a duration which is less than 25 days. Meanwhile there are patients with very long stays. These could be outliers or cases that required prolonged treatment.
 
 According to the [MIMIC-IV documentation](https://mimic.mit.edu/docs/iv/about/concepts/#date-shifting), 
 
@@ -330,10 +424,36 @@ zcat < ~/mimic/hosp/patients.csv.gz | head
 ### Q4.1 Ingestion
 
 Import `patients.csv.gz` (<https://mimic.mit.edu/docs/iv/modules/hosp/patients/>) as a tibble `patients_tble`.
+```{r}
+patients_tble <- read_csv("~/mimic/hosp/patients.csv.gz")
+```
+
 
 ### Q4.2 Summary and visualization
 
 Summarize variables `gender` and `anchor_age` by graphics, and explain any patterns you see.
+```{r}
+#Gender
+ggplot(patients_tble, aes(x = gender)) +
+  geom_bar(fill = "blue", color = "black") +
+  labs(title = "Distribution of Patient's Gender",
+       x = "Gender",
+       y = "Counts") +
+  theme_bw()
+```
+**ANSWER:** 1. The gender of patients is basically evenly distributed, with the number of female patients slightly bigger than that of male patients.
+
+```{r}
+#AGE
+ggplot(patients_tble, aes(x = anchor_age)) +
+  geom_histogram(binwidth = 1, fill = "darkorange", color = "black") +
+  labs(title = "Distribution of Anchor Age",
+       x = "Age",
+       y = "Frequency") +
+  theme_minimal()
+
+```
+**ANSWER:** 2. There are two peaks for age of patients around age 23 and age 91. The frequency of age around 30 and 75 are relatively small.
 
 ## Q5. Lab results
 
