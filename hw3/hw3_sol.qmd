@@ -1,7 +1,7 @@
 ---
 title: "Biostat 203B Homework 3"
 subtitle: "Due Feb 23 @ 11:59PM"
-author: "Your Name and UID"
+author: "Wenbo Zhao 806074910"
 format:
   html:
     theme: cosmo
@@ -28,6 +28,7 @@ library(memuse)
 library(pryr)
 library(R.utils)
 library(tidyverse)
+library(lubridate)
 ```
 
 Display your machine memory.
@@ -49,6 +50,165 @@ A patient's ADT history records the time of admission, discharge, and transfer i
 Do a similar visualization for the patient with `subject_id` 10013310 using ggplot.
 
 Hint: We need to pull information from data files `patients.csv.gz`, `admissions.csv.gz`, `transfers.csv.gz`, `labevents.csv.gz`, `procedures_icd.csv.gz`, `diagnoses_icd.csv.gz`, `d_icd_procedures.csv.gz`, and `d_icd_diagnoses.csv.gz`. For the big file `labevents.csv.gz`, use the Parquet format you generated in Homework 2. For reproducibility, make the Parquet folder `labevents_pq` available at the current working directory `hw3`, for example, by a symbolic link. Make your code reproducible.
+
+**ANSWER:**
+
+First we read the data and filter by subject_id:
+```{r}
+#Read the data for subject_id: 10013310
+id <- 10013310
+#id <- 10001217
+
+data_path <- "~/mimic/hosp/"
+patients_file_path <- paste0(data_path, "patients.csv.gz")
+admissions_file_path <- paste0(data_path, "admissions.csv.gz")
+transfers_file_path <- paste0(data_path, "transfers.csv.gz")
+labevents_file_path <- paste0(data_path, "labevents.parquet")
+procedures_icd_file_path <- paste0(data_path, "procedures_icd.csv.gz")
+d_icd_procedures_file_path <- paste0(data_path, "d_icd_procedures.csv.gz")
+diagnoses_icd_file_path <- paste0(data_path, "diagnoses_icd.csv.gz")
+d_icd_diagnoses_file_path <- paste0(data_path, "d_icd_diagnoses.csv.gz")
+
+patients_data <- read_csv(patients_file_path) %>%
+  filter(subject_id == id)
+
+admissions_data <- read_csv(admissions_file_path) %>%
+  filter(subject_id == id)
+
+transfers_data <- read_csv(transfers_file_path) %>%
+  filter(subject_id == id)
+
+labevents_dataset <- open_dataset("labevents_parquet", format = "parquet")
+labevents_data <- labevents_dataset %>%
+  filter(subject_id == id) %>%
+  collect()
+
+procedures_icd_data <- read_csv(procedures_icd_file_path) %>%
+  filter(subject_id == id)
+
+d_icd_procedures_data <- read_csv(d_icd_procedures_file_path)
+
+diagnoses_icd_data <- read_csv(diagnoses_icd_file_path)%>%
+  filter(subject_id == id)
+
+d_icd_diagnoses_data <- read_csv(d_icd_diagnoses_file_path)
+
+```
+```{r}
+#| eval: false
+patients_data
+admissions_data
+transfers_data
+labevents_data
+procedures_icd_data
+d_icd_procedures_data
+diagnoses_icd_data
+d_icd_diagnoses_data
+```
+
+We select the first admission data according to the `admittime`, this data is specified by `hadm_id`. Then we can extract ADT information.
+```{r}
+#ADT
+#Select the first admission:
+first_admission <- admissions_data %>%
+  arrange(admittime) %>%
+  slice(1)
+
+first_hadm_id <- first_admission$hadm_id
+
+transfers_first_admission <- transfers_data %>%
+  filter(hadm_id == first_hadm_id & eventtype != "discharge")
+
+#Decide if the transfer belongs to ICU/CCU
+icu_ccu_pattern <- "ICU|CCU"
+transfers_first_admission <- transfers_first_admission %>%
+  mutate(icu_ccu = if_else(grepl(icu_ccu_pattern, careunit, ignore.case = TRUE),
+                           "ICU/CCU", "Other"))
+
+#ADT data for plot
+adt_transfer_data <- transfers_first_admission %>%
+  mutate(event_start = intime,
+         event_end = outtime,
+         ) %>%
+  select(subject_id, hadm_id, eventtype, icu_ccu, careunit, event_start,
+         event_end) %>%
+  arrange(event_start)
+```
+
+Extract patient information:
+```{r}
+#Patient Information
+race <- first_admission$race
+age <- patients_data$anchor_age
+gender <- patients_data$gender
+title <- paste("Patient", id, ",", gender, ",", age, "years old,", race)
+```
+
+Extract lab events:
+```{r}
+#Lab Event
+lab_data <- labevents_data %>%
+  select(labevent_id, hadm_id, subject_id, charttime) %>%
+  filter(hadm_id == first_hadm_id) %>%
+  arrange(charttime)
+```
+
+Extract procedures:
+```{r}
+#Procedures
+selected_procedures <- procedures_icd_data %>%
+  select(subject_id, hadm_id, chartdate, icd_code) %>%
+  filter(hadm_id == first_hadm_id)%>%
+  left_join(d_icd_procedures_data, by = "icd_code") %>%
+  select(subject_id, hadm_id, chartdate, icd_code, long_title)
+
+selected_procedures$procedure_type <- as.factor(selected_procedures$long_title) 
+selected_procedures$chartdate <- as.POSIXct(selected_procedures$chartdate, tz = "UTC")
+
+```
+
+Find the top 3 diagnoses:
+```{r}
+#Diagnoses
+selected_diagnoses <- diagnoses_icd_data %>%
+  select(subject_id, hadm_id, icd_code) %>%
+  filter(hadm_id == first_hadm_id)%>%
+  left_join(d_icd_diagnoses_data, by = "icd_code") %>%
+  select(subject_id, hadm_id, icd_code, long_title) %>%
+  slice(1:3)
+
+top_diagnoses_titles <- selected_diagnoses$long_title
+subtitle <- paste(top_diagnoses_titles, collapse = "\n")
+```
+
+Plot the graph:
+```{r}
+# Plot
+ggplot() +
+  # ADT
+  geom_segment(data = adt_transfer_data, aes(x = event_start, xend = event_end, y = 'ADT', yend = 'ADT', 
+                                             color = careunit, size = icu_ccu), 
+               show.legend = TRUE) +
+  scale_size_manual(values = c("ICU/CCU" = 5.0, "Other" = 1.0), guide = FALSE) +
+  
+  # LAB
+  geom_point(data = lab_data, aes(x = charttime, y = 'LAB'), shape = 3, size = 3, show.legend = FALSE) +
+  
+  # Procedure
+  geom_point(data = selected_procedures, aes(x = chartdate, y = 'Procedure', shape = procedure_type), 
+             size = 3, show.legend = TRUE) +
+  
+  labs(title = title, subtitle = subtitle, x = "Calendar Time", y = "") +
+  theme(legend.position = "bottom",
+        legend.box = "vertical", 
+        legend.box.background = element_rect(colour = "transparent"), 
+        legend.margin = margin(t = 0, unit = "cm")) +
+  guides(color = guide_legend(title = "Care Unit", override.aes = list(shape = NA), ncol = 3),
+         shape = guide_legend(title = "Procedure", , override.aes = list(linetype = "blank", size = 3), ncol = 1)) +
+  scale_y_discrete(limits = c("ADT", "LAB", "Procedure"))
+
+```
+
 
 ### Q1.2 ICU stays
 
