@@ -293,7 +293,6 @@ zcat < ~/mimic/icu/icustays.csv.gz | head
 Import `icustays.csv.gz` as a tibble `icustays_tble`. 
 ```{r}
 icustays_tble <- read_csv("~/mimic/icu/icustays.csv.gz")
-icustays_tble
 ```
 
 
@@ -340,7 +339,6 @@ zcat < ~/mimic/hosp/admissions.csv.gz | head
 Import `admissions.csv.gz` as a tibble `admissions_tble`.
 ```{r}
 admissions_tble <- read_csv("~/mimic/hosp/admissions.csv.gz")
-head(admissions_tble)
 ```
 
 ### Q3.2 Summary and visualization
@@ -479,60 +477,32 @@ Hint: Use the Parquet format you generated in Homework 2. For reproducibility, m
 **ANSWER:**
 Read `labevents` and `d_labitems` data:
 ```{r}
-labevents_dataset <- open_dataset("labevents_parquet", format = "parquet")
-labevents_data <- labevents_dataset %>%
-  select(subject_id, hadm_id, itemid, charttime, storetime, valuenum) %>%
-  filter(itemid %in% c(50912, 50971, 50983, 50902, 50882, 51221, 51301, 50931)) %>%
-  collect()
-
 d_labitems_tble <- read_csv("~/mimic/hosp/d_labitems.csv.gz") %>%
   select(itemid, label)
-```
 
-Attach lab label to the labevents based on `itemid`:
-```{r}
-labevents_data_label <- labevents_data %>%
+labevents_dataset <- open_dataset("labevents_parquet", format = "parquet")
+labevents_data_label <- labevents_dataset %>%
+  select(subject_id, itemid, charttime, storetime, valuenum) %>%
+  filter(itemid %in% 
+           c(50912, 50971, 50983, 50902, 50882, 51221, 51301, 50931)) %>%
+  collect() %>%
   left_join(d_labitems_tble, by = "itemid")
-```
-For icustays data, select the `subject_id`, `stay_id` and `outtime` column, only keeps data with the latest `outtime` for each `stay_id`:
-```{r}
-icustays_tble_lab <- icustays_tble %>%
-  select(subject_id, hadm_id, stay_id, intime, outtime) %>%
-  group_by(stay_id) %>%
-  slice_max(order_by = outtime, n = 1) %>%
-  ungroup()
 
 ```
 
-Join processed labevents data and icustays data to get items for the patients in `icustays_tble`. Restrict to the last available measurement (by `storetime`) before the ICU stay (by `outtime`). For a single `stay_id`, remove duplicated `itemid` by only keeping the item with latest `storetime` and `charttime`:
-
-```{r}
-labevents_data_label
-
-  
-icu_summarize2 <- icustays_tble_lab %>% 
-  group_by(subject_id, hadm_id) %>%
-  summarise(same_sh = n() > 1) %>%
-  filter(same_sh == TRUE) %>%
-  ungroup()
-
-
-icustays_tble_lab %>% filter(subject_id == 10002428 & hadm_id == 28662225)
-```
-
+Join processed labevents data and icustays data to get items for the patients in `icustays_tble`. Restrict to the last available measurement (by `storetime`) after the ICU stay (by `intime`). For a single `stay_id`, remove duplicated `itemid` by only keeping the item with latest `storetime` and `charttime`:
 ```{r}
 labevents_icu <- labevents_data_label %>%
-  inner_join(icustays_tble_lab, by = c("subject_id", "hadm_id")) %>%
+  filter(subject_id %in% icustays_tble$subject_id) %>%
+  left_join(select(icustays_tble, subject_id, stay_id, intime), 
+            by = c("subject_id")) %>%
   group_by(stay_id, itemid) %>%
-  filter(storetime < outtime) %>%
-  filter(storetime > intime) %>%
-  slice_max(order_by = storetime, n = 1) %>%
-  slice_max(order_by = charttime, n = 1) %>%
-  distinct(itemid, .keep_all = TRUE) %>%
+  filter(storetime < intime) %>%
+  arrange(subject_id, stay_id, itemid, desc(storetime), desc(charttime)) %>%
+  group_by(subject_id, stay_id, itemid) %>%
+  slice_head(n = 1) %>%
   ungroup()
-  
 ```
-
 Transfer the `label` and `valuenum` columns to get value for each lab events:
 ```{r}
 labevents_tble <- labevents_icu %>%
@@ -546,8 +516,11 @@ labevents_tble <- labevents_icu %>%
 ```
 
 ```{r}
+labevents_tble <- labevents_tble %>%
+  rename(white_blood_cells = `White Blood Cells`)
 labevents_tble
 ```
+
 
 ## Q6. Vitals from charted events
 
@@ -574,7 +547,7 @@ Read chartevent data and attach label for each item:
 chartevents_parquet <- open_dataset("chartevents_parquet", format = "parquet")
   
 parquet_data <- chartevents_parquet %>%
-  select(subject_id, hadm_id, stay_id, itemid, charttime, storetime, valuenum) %>%
+  select(subject_id, stay_id, itemid, charttime, storetime, valuenum) %>%
   filter(itemid %in% c(220045, 220181, 220179, 223761, 220210)) 
 
 chartevents_tibble <- parquet_data %>% collect()
@@ -586,29 +559,18 @@ chartevents_data <- chartevents_tibble %>%
   left_join(d_items_data, by = "itemid")
 ```
 
-For icustays data, select the `subject_id`, `intime` and `outtime` column, only keeps data with the earliest `intime`:
-```{r}
-icustays_tble_chart <- icustays_tble %>%
-  select(subject_id, hadm_id, stay_id, intime, outtime) %>%
-  group_by(stay_id) %>%
-  slice_min(order_by = intime, n = 1) %>%
-  ungroup()
-
-```
-
-Join processed chartevents data and icustays data to get items for the patients in `icustays_tble`. Restrict to the the first vital measurement (by `storetime`) between the ICU stay (from `intime` to `outtime`). For a single `stay_id`, remove duplicated `itemid` by only keeping the item with latest `storetime` and `charttime`:
+Join processed chartevents data and icustays data to get items for the patients in `icustays_tble`. Restrict to the the first vital measurement between the ICU stay (from `intime` to `outtime`). For a single `stay_id`, remove duplicated `itemid` by only keeping the item with latest `storetime` and `charttime`:
 ```{r}
 chartevents_icu <- chartevents_data %>%
-  #semi_join(icustays_tble_chart, by = "subject_id") %>%
-  inner_join(icustays_tble_chart, by = c("subject_id", "hadm_id", "stay_id")) %>%
-  group_by(stay_id, itemid) %>%
-  filter(min(storetime) < outtime) %>%
-  filter(min(storetime) > intime) %>%
-  slice_max(order_by = storetime, n = 1) %>%
-  slice_max(order_by = charttime, n = 1) %>%
-  distinct(itemid, .keep_all = TRUE) %>%
+  filter(subject_id %in% icustays_tble$subject_id) %>%
+  left_join(select(icustays_tble, subject_id, intime, outtime), 
+            by = c("subject_id")) %>%
+  group_by(subject_id, stay_id, itemid) %>%
+  filter(charttime >= intime, charttime <= outtime) %>%
+  arrange(subject_id, stay_id, itemid, desc(storetime), desc(charttime)) %>%
+  group_by(subject_id, stay_id, itemid) %>%
+  slice_head(n = 1) %>%
   ungroup()
-  
 ```
 
 Transfer the `label` and `valuenum` columns to get value for each chart events:
@@ -624,6 +586,15 @@ chartevents_tble <- chartevents_icu %>%
 ```
 
 ```{r}
+chartevents_tble <- chartevents_tble %>%
+  rename(
+    heart_rate = `Heart Rate`,
+    non_invasive_blood_pressure_systolic = 
+      `Non Invasive Blood Pressure systolic`,
+    non_invasive_blood_pressure_mean = `Non Invasive Blood Pressure mean`,
+    respiratory_rate = `Respiratory Rate`,
+    temperature_fahrenheit = `Temperature Fahrenheit`
+  )
 chartevents_tble
 ```
 
@@ -673,31 +644,240 @@ mimic_icu_cohort
 Summarize the following information about the ICU stay cohort `mimic_icu_cohort` using appropriate numerics or graphs:
 
 - Length of ICU stay `los` vs demographic variables (race, insurance, marital_status, gender, age at intime)
+
+Race:
 ```{r}
-library(dplyr)
-library(ggplot2)
+race_summary <- mimic_icu_cohort %>%
+  group_by(race) %>%
+  summarise(
+    mean_los = mean(los, na.rm = TRUE),
+    median_los = median(los, na.rm = TRUE),
+    IQR_los = IQR(los, na.rm = TRUE)
+  )
+race_summary
+```
+```{r}
+race_plot <- ggplot(mimic_icu_cohort, aes(x = race, y = los)) +
+  geom_boxplot(size = 0.1, alpha = 0.5)+
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 50, hjust = 1))
 
-# Calculate summary statistics for LOS by each demographic variable
-summary_stats <- mimic_icu_cohort %>%
-  group_by(race, insurance, marital_status, gender) %>%
-  summarise(mean_los = mean(los, na.rm = TRUE),
-            median_los = median(los, na.rm = TRUE),
-            min_los = min(los, na.rm = TRUE),
-            max_los = max(los, na.rm = TRUE))
+print(race_plot)
+```
+Insurance:
+```{r}
+insurance_summary <- mimic_icu_cohort %>%
+  group_by(insurance) %>%
+  summarise(
+    mean_los = mean(los, na.rm = TRUE),
+    median_los = median(los, na.rm = TRUE),
+    IQR_los = IQR(los, na.rm = TRUE)
+  )
 
-# Visualize LOS vs. demographic variables
-ggplot(mimic_icu_cohort, aes(x = race, y = los)) + 
-  geom_boxplot() + 
-  facet_wrap(~insurance + marital_status + gender, scales = 'free_x') +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+print(insurance_summary)
+```
+```{r}
+insurance_plot <- ggplot(mimic_icu_cohort, aes(x = insurance, y = los)) +
+  geom_boxplot(size = 0.1, alpha = 0.5) +
+  theme_bw() +
+  theme(axis.text.x = element_text())
 
+print(insurance_plot)
+```
+Marital Status:
+```{r}
+summary_by_marital_status <- mimic_icu_cohort %>% 
+  group_by(marital_status) %>% 
+  summarise(mean_los = mean(los, na.rm = TRUE), 
+            median_los = median(los, na.rm = TRUE), 
+            IQR_los = IQR(los, na.rm = TRUE))
+print(summary_by_marital_status)
 ```
 
+```{r}
+p_marital_status <- ggplot(mimic_icu_cohort, aes(x = marital_status, y = los)) + 
+  geom_boxplot(size = 0.1, alpha = 0.5) + 
+  theme_bw() +
+  theme(axis.text.x = element_text())
+print(p_marital_status)
+```
+Gender:
+```{r}
+summary_by_gender <- mimic_icu_cohort %>% 
+  group_by(gender) %>% 
+  summarise(mean_los = mean(los, na.rm = TRUE), 
+            median_los = median(los, na.rm = TRUE), 
+            IQR_los = IQR(los, na.rm = TRUE))
+
+print(summary_by_gender)
+```
+
+```{r}
+p_gender <- ggplot(mimic_icu_cohort, aes(x = gender, y = los)) + 
+  geom_boxplot(size = 0.1, alpha = 0.5) +
+  theme_bw() +
+  theme(axis.text.x = element_text())
+print(p_gender)
+```
+Age at `intime`:
+```{r}
+p_age <- ggplot(mimic_icu_cohort, aes(x = age_at_intime, y = los)) + 
+  geom_smooth(method = lm) +
+  theme_bw()
+print(p_age)
+```
 
 - Length of ICU stay `los` vs the last available lab measurements before ICU stay
 
+Bicarbonate
+```{r}
+p_Bicarbonate <- ggplot(mimic_icu_cohort, aes(x = Bicarbonate, y = los)) + 
+  geom_smooth(method = lm) +
+  theme_bw()
+print(p_Bicarbonate)
+```
+
+Chloride
+```{r}
+p_Chloride <- ggplot(mimic_icu_cohort, aes(x = Chloride, y = los)) + 
+  geom_smooth(method = lm) +
+  theme_bw()
+print(p_Chloride)
+```
+Creatinine
+```{r}
+p_Creatinine <- ggplot(mimic_icu_cohort, aes(x = Creatinine, y = los)) + 
+  geom_smooth(method = lm) +
+  theme_bw()
+print(p_Creatinine)
+```
+Glucose
+```{r}
+p_Glucose <- ggplot(mimic_icu_cohort, aes(x = Glucose, y = los)) + 
+  geom_smooth(method = lm) +
+  theme_bw()
+print(p_Glucose)
+```
+
+Potassium
+```{r}
+p_Potassium <- ggplot(mimic_icu_cohort, aes(x = Potassium, y = los)) + 
+  geom_smooth(method = lm) +
+  theme_bw()
+print(p_Potassium)
+```
+Sodium
+```{r}
+p_Sodium <- ggplot(mimic_icu_cohort, aes(x = Sodium, y = los)) + 
+  geom_smooth(method = lm) +
+  theme_bw()
+print(p_Sodium)
+```
+Hematocrit
+```{r}
+p_Hematocrit <- ggplot(mimic_icu_cohort, aes(x = Hematocrit, y = los)) + 
+  geom_smooth(method = lm) +
+  theme_bw()
+print(p_Hematocrit)
+```
+White Blood Cells
+```{r}
+p_white_blood_cells <- ggplot(mimic_icu_cohort, aes(x = white_blood_cells, y = los)) + 
+  geom_smooth(method = lm) +
+  theme_bw()
+print(p_white_blood_cells)
+```
+
 - Length of ICU stay `los` vs the average vital measurements within the first hour of ICU stay
 
-- Length of ICU stay `los` vs first ICU unit
+Heart Rate
+```{r}
+filtered_data <- mimic_icu_cohort %>%
+  filter(heart_rate <= 500)
 
+p_heart_rate <- ggplot(filtered_data, aes(x = heart_rate, y = los)) +
+  geom_smooth(method = "lm") +
+  theme_bw()
+
+print(p_heart_rate)
+
+```
+
+Non Invasive Blood Pressure systolic
+```{r}
+filtered_data <- mimic_icu_cohort %>%
+  filter(non_invasive_blood_pressure_systolic <= 500)
+
+p_non_invasive_blood_pressure_systolic <- ggplot(filtered_data, 
+                       aes(x = non_invasive_blood_pressure_systolic, y = los)) +
+  geom_smooth(method = "lm") +
+  theme_bw()
+
+print(p_non_invasive_blood_pressure_systolic)
+
+```
+
+Non Invasive Blood Pressure mean
+```{r}
+filtered_data <- mimic_icu_cohort %>%
+  filter(non_invasive_blood_pressure_mean <= 500)
+
+p_non_invasive_blood_pressure_mean <- ggplot(filtered_data, 
+                       aes(x = non_invasive_blood_pressure_mean, y = los)) +
+  geom_smooth(method = "lm") +
+  theme_bw()
+
+print(p_non_invasive_blood_pressure_mean)
+
+```
+
+Respiratory Rate
+```{r}
+filtered_data <- mimic_icu_cohort %>%
+  filter(respiratory_rate <= 500)
+
+p_respiratory_rate <- ggplot(filtered_data, 
+                       aes(x = respiratory_rate, y = los)) +
+  geom_smooth(method = "lm") +
+  theme_bw()
+
+print(p_respiratory_rate)
+
+```
+
+Temperature Fahrenheit
+```{r}
+filtered_data <- mimic_icu_cohort %>%
+  filter(temperature_fahrenheit <= 900)
+
+p_temperature_fahrenheit <- ggplot(filtered_data, 
+                       aes(x = temperature_fahrenheit, y = los)) +
+  geom_smooth(method = "lm") +
+  theme_bw()
+
+print(p_temperature_fahrenheit)
+
+```
+
+- Length of ICU stay `los` vs first ICU unit
+```{r}
+careunit_summary <- mimic_icu_cohort %>%
+  group_by(first_careunit) %>%
+  summarise(
+    mean_los = mean(los, na.rm = TRUE),
+    median_los = median(los, na.rm = TRUE),
+    IQR_los = IQR(los, na.rm = TRUE)
+  )
+
+print(careunit_summary)
+```
+
+```{r}
+careunit_plot <- ggplot(mimic_icu_cohort, aes(x = first_careunit, y = los)) +
+  geom_boxplot(size = 0.1, alpha = 0.5) +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 50, hjust = 1))
+
+print(careunit_plot)
+```
 
