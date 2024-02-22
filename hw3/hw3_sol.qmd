@@ -89,7 +89,7 @@ admissions_data <- read_csv(admissions_file_path) %>%
 transfers_data <- read_csv(transfers_file_path) %>%
   filter(subject_id == id)
 
-labevents_dataset <- open_dataset("labevents_parquet", format = "parquet")
+labevents_dataset <- open_dataset("labevents_pq", format = "parquet")
 labevents_data <- labevents_dataset %>%
   filter(subject_id == id) %>%
   collect()
@@ -237,7 +237,7 @@ ICU stays are a subset of ADT history. This figure shows the vitals of the patie
 Read chartevent data:
 ```{r}
 #Read chartevent data
-chartevents_parquet <- open_dataset("chartevents_parquet", format = "parquet")
+chartevents_parquet <- open_dataset("chartevents_pq", format = "parquet")
   
 parquet_data <- chartevents_parquet %>%
   select(subject_id, stay_id, itemid, charttime, valuenum) %>%
@@ -480,7 +480,7 @@ Read `labevents` and `d_labitems` data:
 d_labitems_tble <- read_csv("~/mimic/hosp/d_labitems.csv.gz") %>%
   select(itemid, label)
 
-labevents_dataset <- open_dataset("labevents_parquet", format = "parquet")
+labevents_dataset <- open_dataset("labevents_pq", format = "parquet")
 labevents_data_label <- labevents_dataset %>%
   select(subject_id, itemid, charttime, storetime, valuenum) %>%
   filter(itemid %in% 
@@ -544,7 +544,7 @@ Hint: Use the Parquet format you generated in Homework 2. For reproducibility, m
 Read chartevent data and attach label for each item:
 ```{r}
 #Read chartevent data
-chartevents_parquet <- open_dataset("chartevents_parquet", format = "parquet")
+chartevents_parquet <- open_dataset("chartevents_pq", format = "parquet")
   
 parquet_data <- chartevents_parquet %>%
   select(subject_id, stay_id, itemid, charttime, storetime, valuenum) %>%
