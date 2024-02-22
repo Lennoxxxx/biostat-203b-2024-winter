@@ -222,7 +222,7 @@ ggplot() +
          shape = guide_legend(title = "Procedure", 
                               override.aes = list(linetype = "blank", size = 3), 
                               ncol = 1)) +
-  scale_y_discrete(limits = c("ADT", "LAB", "Procedure"))
+  scale_y_discrete(limits = c('Procedure', 'LAB', 'ADT'))
 
 ```
 
@@ -340,7 +340,7 @@ zcat < ~/mimic/hosp/admissions.csv.gz | head
 Import `admissions.csv.gz` as a tibble `admissions_tble`.
 ```{r}
 admissions_tble <- read_csv("~/mimic/hosp/admissions.csv.gz")
-#head(admissions_tble)
+head(admissions_tble)
 ```
 
 ### Q3.2 Summary and visualization
@@ -427,6 +427,9 @@ Import `patients.csv.gz` (<https://mimic.mit.edu/docs/iv/modules/hosp/patients/>
 ```{r}
 patients_tble <- read_csv("~/mimic/hosp/patients.csv.gz")
 ```
+```{r}
+patients_tble
+```
 
 
 ### Q4.2 Summary and visualization
@@ -453,7 +456,7 @@ ggplot(patients_tble, aes(x = anchor_age)) +
   theme_minimal()
 
 ```
-**ANSWER:** 2. There are two peaks for age of patients around age 23 and age 91. The frequency of age around 30 and 75 are relatively small.
+**ANSWER:** 2. There are two peaks for age of patients around age 23 and age 91. The frequency of age around 30 and 75 are relatively small. Note that according to the dataset document, if a patient’s `anchor_age` is over 89 in the anchor_year then their `anchor_age` is set to 91, regardless of how old they actually were, which explains the reason why we have a high volume in age 91.
 
 ## Q5. Lab results
 
@@ -471,8 +474,80 @@ We are interested in the lab measurements of creatinine (50912), potassium (5097
 
 ![](labevents_tble.png)
 
-
 Hint: Use the Parquet format you generated in Homework 2. For reproducibility, make `labevents_pq` folder available at the current working directory `hw3`, for example, by a symbolic link.
+
+**ANSWER:**
+Read `labevents` and `d_labitems` data:
+```{r}
+labevents_dataset <- open_dataset("labevents_parquet", format = "parquet")
+labevents_data <- labevents_dataset %>%
+  select(subject_id, hadm_id, itemid, charttime, storetime, valuenum) %>%
+  filter(itemid %in% c(50912, 50971, 50983, 50902, 50882, 51221, 51301, 50931)) %>%
+  collect()
+
+d_labitems_tble <- read_csv("~/mimic/hosp/d_labitems.csv.gz") %>%
+  select(itemid, label)
+```
+
+Attach lab label to the labevents based on `itemid`:
+```{r}
+labevents_data_label <- labevents_data %>%
+  left_join(d_labitems_tble, by = "itemid")
+```
+For icustays data, select the `subject_id`, `stay_id` and `outtime` column, only keeps data with the latest `outtime` for each `stay_id`:
+```{r}
+icustays_tble_lab <- icustays_tble %>%
+  select(subject_id, hadm_id, stay_id, intime, outtime) %>%
+  group_by(stay_id) %>%
+  slice_max(order_by = outtime, n = 1) %>%
+  ungroup()
+
+```
+
+Join processed labevents data and icustays data to get items for the patients in `icustays_tble`. Restrict to the last available measurement (by `storetime`) before the ICU stay (by `outtime`). For a single `stay_id`, remove duplicated `itemid` by only keeping the item with latest `storetime` and `charttime`:
+
+```{r}
+labevents_data_label
+
+  
+icu_summarize2 <- icustays_tble_lab %>% 
+  group_by(subject_id, hadm_id) %>%
+  summarise(same_sh = n() > 1) %>%
+  filter(same_sh == TRUE) %>%
+  ungroup()
+
+
+icustays_tble_lab %>% filter(subject_id == 10002428 & hadm_id == 28662225)
+```
+
+```{r}
+labevents_icu <- labevents_data_label %>%
+  inner_join(icustays_tble_lab, by = c("subject_id", "hadm_id")) %>%
+  group_by(stay_id, itemid) %>%
+  filter(storetime < outtime) %>%
+  filter(storetime > intime) %>%
+  slice_max(order_by = storetime, n = 1) %>%
+  slice_max(order_by = charttime, n = 1) %>%
+  distinct(itemid, .keep_all = TRUE) %>%
+  ungroup()
+  
+```
+
+Transfer the `label` and `valuenum` columns to get value for each lab events:
+```{r}
+labevents_tble <- labevents_icu %>%
+  select(subject_id, stay_id, label, valuenum) %>%
+  group_by(subject_id) %>%
+  pivot_wider(
+    names_from = label,  
+    values_from = valuenum 
+  ) %>%
+  ungroup()
+```
+
+```{r}
+labevents_tble
+```
 
 ## Q6. Vitals from charted events
 
@@ -492,6 +567,66 @@ We are interested in the vitals for ICU patients: heart rate (220045), systolic 
 
 Hint: Use the Parquet format you generated in Homework 2. For reproducibility, make `chartevents_pq` folder available at the current working directory, for example, by a symbolic link.
 
+**ANSWER:**
+Read chartevent data and attach label for each item:
+```{r}
+#Read chartevent data
+chartevents_parquet <- open_dataset("chartevents_parquet", format = "parquet")
+  
+parquet_data <- chartevents_parquet %>%
+  select(subject_id, hadm_id, stay_id, itemid, charttime, storetime, valuenum) %>%
+  filter(itemid %in% c(220045, 220181, 220179, 223761, 220210)) 
+
+chartevents_tibble <- parquet_data %>% collect()
+
+d_items_data <- read_csv("~/mimic/icu/d_items.csv.gz")
+d_items_data <- d_items_data %>%
+  select(itemid, label, abbreviation)
+chartevents_data <- chartevents_tibble %>%
+  left_join(d_items_data, by = "itemid")
+```
+
+For icustays data, select the `subject_id`, `intime` and `outtime` column, only keeps data with the earliest `intime`:
+```{r}
+icustays_tble_chart <- icustays_tble %>%
+  select(subject_id, hadm_id, stay_id, intime, outtime) %>%
+  group_by(stay_id) %>%
+  slice_min(order_by = intime, n = 1) %>%
+  ungroup()
+
+```
+
+Join processed chartevents data and icustays data to get items for the patients in `icustays_tble`. Restrict to the the first vital measurement (by `storetime`) between the ICU stay (from `intime` to `outtime`). For a single `stay_id`, remove duplicated `itemid` by only keeping the item with latest `storetime` and `charttime`:
+```{r}
+chartevents_icu <- chartevents_data %>%
+  #semi_join(icustays_tble_chart, by = "subject_id") %>%
+  inner_join(icustays_tble_chart, by = c("subject_id", "hadm_id", "stay_id")) %>%
+  group_by(stay_id, itemid) %>%
+  filter(min(storetime) < outtime) %>%
+  filter(min(storetime) > intime) %>%
+  slice_max(order_by = storetime, n = 1) %>%
+  slice_max(order_by = charttime, n = 1) %>%
+  distinct(itemid, .keep_all = TRUE) %>%
+  ungroup()
+  
+```
+
+Transfer the `label` and `valuenum` columns to get value for each chart events:
+```{r}
+chartevents_tble <- chartevents_icu %>%
+  select(subject_id, stay_id, label, valuenum) %>%
+  group_by(subject_id) %>%
+  pivot_wider(
+    names_from = label,  
+    values_from = valuenum 
+  ) %>%
+  ungroup()
+```
+
+```{r}
+chartevents_tble
+```
+
 ## Q7. Putting things together
 
 Let us create a tibble `mimic_icu_cohort` for all ICU stays, where rows are all ICU stays of adults (age at `intime` >= 18) and columns contain at least following variables
@@ -505,16 +640,64 @@ Let us create a tibble `mimic_icu_cohort` for all ICU stays, where rows are all 
 The final `mimic_icu_cohort` should have one row per ICU stay and columns for each variable.
 
 ![](mimic_icu_cohort.png)
+**ANSWER:**
+Join table:
+```{r}
+mimic_icu_cohort <- icustays_tble %>%
+  left_join(admissions_tble, by = c("subject_id", "hadm_id")) %>%
+  left_join(patients_tble, by = "subject_id") %>%
+  left_join(labevents_tble, by = c("stay_id", "subject_id")) %>%
+  left_join(chartevents_tble, by = c("stay_id", "subject_id"))
+
+#mimic_icu_cohort
+```
+
+Actual `intime` age calculation: 
+```{r}
+#Calculate real age at intime and filter
+mimic_icu_cohort <- mimic_icu_cohort %>%
+  mutate(
+    in_year = year(intime),
+    year_difference = as.numeric(in_year) - as.numeric(anchor_year),
+    age_at_intime = ifelse(anchor_age > 89, 91, anchor_age) + year_difference
+  ) %>%
+  select(-in_year, -year_difference) %>%
+  filter(age_at_intime >= 18)
+```
+```{r}
+mimic_icu_cohort
+```
 
 ## Q8. Exploratory data analysis (EDA)
 
 Summarize the following information about the ICU stay cohort `mimic_icu_cohort` using appropriate numerics or graphs:
 
 - Length of ICU stay `los` vs demographic variables (race, insurance, marital_status, gender, age at intime)
+```{r}
+library(dplyr)
+library(ggplot2)
+
+# Calculate summary statistics for LOS by each demographic variable
+summary_stats <- mimic_icu_cohort %>%
+  group_by(race, insurance, marital_status, gender) %>%
+  summarise(mean_los = mean(los, na.rm = TRUE),
+            median_los = median(los, na.rm = TRUE),
+            min_los = min(los, na.rm = TRUE),
+            max_los = max(los, na.rm = TRUE))
+
+# Visualize LOS vs. demographic variables
+ggplot(mimic_icu_cohort, aes(x = race, y = los)) + 
+  geom_boxplot() + 
+  facet_wrap(~insurance + marital_status + gender, scales = 'free_x') +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+
+```
+
 
 - Length of ICU stay `los` vs the last available lab measurements before ICU stay
 
 - Length of ICU stay `los` vs the average vital measurements within the first hour of ICU stay
 
 - Length of ICU stay `los` vs first ICU unit
+
 
