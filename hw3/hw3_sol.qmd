@@ -49,6 +49,7 @@ memuse::Sys.meminfo()
 
 In this exercise, we use tidyverse (ggplot2, dplyr, etc) to explore the [MIMIC-IV](https://mimic.mit.edu/docs/iv/) data introduced in [homework 1](https://ucla-biostat-203b.github.io/2024winter/hw/hw1/hw1.html) and to build a cohort of ICU stays.
 
+
 ## Q1. Visualizing patient trajectory
 
 Visualizing a patient's encounters in a health care system is a common task in clinical data analysis. In this question, we will visualize a patient's ADT (admission-discharge-transfer) history and ICU vitals in the MIMIC-IV data.
@@ -62,8 +63,16 @@ Do a similar visualization for the patient with `subject_id` 10013310 using ggpl
 
 Hint: We need to pull information from data files `patients.csv.gz`, `admissions.csv.gz`, `transfers.csv.gz`, `labevents.csv.gz`, `procedures_icd.csv.gz`, `diagnoses_icd.csv.gz`, `d_icd_procedures.csv.gz`, and `d_icd_diagnoses.csv.gz`. For the big file `labevents.csv.gz`, use the Parquet format you generated in Homework 2. For reproducibility, make the Parquet folder `labevents_pq` available at the current working directory `hw3`, for example, by a symbolic link. Make your code reproducible.
 
-**ANSWER:**
+**About Parquet folder:**
+For this task, the parquet folders are placed in the working dictionary `hw3`, please use these commends to create symbolic link.
+```{bash}
+#| eval: false
+ln -s /path/to/labevents_pq labevents_pq
+ln -s /path/to/chartevents_pq chartevents_pq
+```
 
+
+**ANSWER:**
 First we read the data and filter by subject_id:
 ```{r}
 #Read the data for subject_id: 10013310
@@ -74,7 +83,6 @@ data_path <- "~/mimic/hosp/"
 patients_file_path <- paste0(data_path, "patients.csv.gz")
 admissions_file_path <- paste0(data_path, "admissions.csv.gz")
 transfers_file_path <- paste0(data_path, "transfers.csv.gz")
-labevents_file_path <- paste0(data_path, "labevents.parquet")
 procedures_icd_file_path <- paste0(data_path, "procedures_icd.csv.gz")
 d_icd_procedures_file_path <- paste0(data_path, "d_icd_procedures.csv.gz")
 diagnoses_icd_file_path <- paste0(data_path, "diagnoses_icd.csv.gz")
@@ -237,13 +245,13 @@ ICU stays are a subset of ADT history. This figure shows the vitals of the patie
 Read chartevent data:
 ```{r}
 #Read chartevent data
-chartevents_parquet <- open_dataset("chartevents_pq", format = "parquet")
+chartevents_dataset <- open_dataset("chartevents_pq", format = "parquet")
   
-parquet_data <- chartevents_parquet %>%
+chartevents_data <- chartevents_dataset %>%
   select(subject_id, stay_id, itemid, charttime, valuenum) %>%
   filter(itemid %in% c(220045, 220181, 220179, 223761, 220210)) 
 
-chartevents_tibble <- parquet_data %>% collect()
+chartevents_tibble <- chartevents_data %>% collect()
 
 d_items_data <- read_csv("~/mimic/icu/d_items.csv.gz")
 d_items_data <- d_items_data %>%
@@ -544,13 +552,13 @@ Hint: Use the Parquet format you generated in Homework 2. For reproducibility, m
 Read chartevent data and attach label for each item:
 ```{r}
 #Read chartevent data
-chartevents_parquet <- open_dataset("chartevents_pq", format = "parquet")
+chartevents_dataset <- open_dataset("chartevents_pq", format = "parquet")
   
-parquet_data <- chartevents_parquet %>%
+chartevents_data <- chartevents_dataset %>%
   select(subject_id, stay_id, itemid, charttime, storetime, valuenum) %>%
   filter(itemid %in% c(220045, 220181, 220179, 223761, 220210)) 
 
-chartevents_tibble <- parquet_data %>% collect()
+chartevents_tibble <- chartevents_data %>% collect()
 
 d_items_data <- read_csv("~/mimic/icu/d_items.csv.gz")
 d_items_data <- d_items_data %>%
