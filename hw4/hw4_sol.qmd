@@ -1,7 +1,7 @@
 ---
 title: "Biostat 203B Homework 4"
 subtitle: "Due Mar 8 @ 11:59PM"
-author: "Your Name and UID"
+author: "Wenbo Zhao 806074910"
 format:
   html:
     theme: cosmo
@@ -11,8 +11,19 @@ format:
     toc-depth: 4
     toc-location: left
     code-fold: false
+knitr:
+  opts_chunk: 
+    cache: false    
+    echo: true
+    fig.align: 'center'
+    fig.width: 6
+    fig.height: 4
+    message: FALSE
 execute:
-  eval: false
+  eval: true    
+editor_options: 
+  chunk_output_type: inline
+  
 ---
 
 Display machine information:
@@ -77,7 +88,9 @@ icustays_tble <- tbl(con_bq, "icustays") |>
 Connect to the `admissions` table.
 ```{r}
 # # TODO
-# admissions_tble <- 
+admissions_tble <- tbl(con_bq, "admissions") |>
+  # show_query() |>
+  print(width = Inf)
 ```
 
 ### Q1.4 `patients` data
@@ -85,7 +98,9 @@ Connect to the `admissions` table.
 Connect to the `patients` table.
 ```{r}
 # # TODO
-# patients_tble <-
+patients_tble <- tbl(con_bq, "patients") |>
+  # show_query() |>
+  print(width = Inf)
 ```
 
 ### Q1.5 `labevents` data
@@ -93,7 +108,34 @@ Connect to the `patients` table.
 Connect to the `labevents` table and retrieve a subset that only contain subjects who appear in `icustays_tble` and the lab items listed in HW3. Only keep the last lab measurements before the ICU stay and pivot lab items to become variables/columns. Write all steps in _one_ chain of pipes.
 ```{r}
 # # TODO
-# labevents_tble <- 
+labevents_tble <- tbl(con_bq, "labevents") |>
+  select(subject_id, itemid, charttime, storetime, valuenum) |>
+  filter(itemid %in% 
+           c(50912, 50971, 50983, 50902, 50882, 51221, 51301, 50931)) |>
+  left_join(select(tbl(con_bq, "d_labitems"), itemid, label), by = "itemid") |>
+  inner_join(select(icustays_tble, subject_id, stay_id, intime), 
+             by = "subject_id") |>
+
+  group_by(subject_id, stay_id, itemid) |>
+  filter(storetime < intime) |>
+
+  arrange(desc(storetime), desc(charttime)) %>%
+  mutate(rn = row_number()) %>%
+  filter(rn == 1) |> 
+  select(-rn) |>
+  ungroup() |> 
+  
+  select(subject_id, stay_id, label, valuenum) |>
+  group_by(subject_id) |>
+  pivot_wider(
+    names_from = label,  
+    values_from = valuenum 
+  ) |>
+  ungroup() |>
+  
+  collect() |>
+  print(width = Inf)
+
 ```
 
 ### Q1.6 `chartevents` data
@@ -101,7 +143,32 @@ Connect to the `labevents` table and retrieve a subset that only contain subject
 Connect to `chartevents` table and retrieve a subset that only contain subjects who appear in `icustays_tble` and the chart events listed in HW3. Only keep the first chart events during ICU stay and pivot chart events to become variables/columns. Write all steps in _one_ chain of pipes.
 ```{r}
 # # TODO
-# chartevents_tble <- 
+chartevents_tble <- tbl(con_bq, "chartevents") |>
+  select(subject_id, stay_id, itemid, charttime, storetime, valuenum) |>
+  filter(itemid %in% 
+           c(220045, 220181, 220179, 223761, 220210)) |>
+  left_join(select(tbl(con_bq, "d_items"), itemid, label), by = "itemid") |>
+  inner_join(select(icustays_tble, subject_id, intime, outtime), 
+             by = "subject_id") |>
+
+  group_by(subject_id, stay_id, itemid) |>
+  filter(charttime >= intime, charttime <= outtime) |>
+
+  mutate(rn = row_number(order_by(charttime, storetime))) %>%
+  filter(rn == 1) |> 
+  select(-rn) |>
+  ungroup() |> 
+  
+  select(subject_id, stay_id, label, valuenum) |>
+  group_by(subject_id) |>
+  pivot_wider(
+    names_from = label,  
+    values_from = valuenum 
+  ) |>
+  ungroup() |>
+  
+  collect() |>
+  print(width = Inf)
 ```
 
 ### Q1.7 Put things together
