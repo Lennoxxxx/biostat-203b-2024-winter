@@ -132,8 +132,9 @@ labevents_tble <- tbl(con_bq, "labevents") |>
     values_from = valuenum 
   ) |>
   ungroup() |>
+  rename(white_blood_cells = `White Blood Cells`) |>
   
-  collect() |>
+  #collect() |>
   print(width = Inf)
 
 ```
@@ -166,8 +167,16 @@ chartevents_tble <- tbl(con_bq, "chartevents") |>
     values_from = valuenum 
   ) |>
   ungroup() |>
+  rename(
+    heart_rate = `Heart Rate`,
+    non_invasive_blood_pressure_systolic = 
+      `Non Invasive Blood Pressure systolic`,
+    non_invasive_blood_pressure_mean = `Non Invasive Blood Pressure mean`,
+    respiratory_rate = `Respiratory Rate`,
+    temperature_fahrenheit = `Temperature Fahrenheit`
+  ) |>
   
-  collect() |>
+  #collect() |>
   print(width = Inf)
 ```
 
@@ -177,7 +186,22 @@ This step is similar to Q7 of HW3. Using _one_ chain of pipes `|>` to perform fo
 
 ```{r}
 # # TODO
-# mimic_icu_cohort <- 
+mimic_icu_cohort <- icustays_tble |>
+  left_join(admissions_tble, by = c("subject_id", "hadm_id")) |>
+  left_join(patients_tble, by = "subject_id") |>
+  left_join(labevents_tble, by = c("stay_id", "subject_id")) |>
+  left_join(chartevents_tble, by = c("stay_id", "subject_id")) |>
+  
+  mutate(
+    in_year = year(intime),
+    year_difference = as.numeric(in_year) - as.numeric(anchor_year),
+    age_at_intime = ifelse(anchor_age > 89, 91, anchor_age) + year_difference
+  ) |>
+  select(-in_year, -year_difference) |>
+  filter(age_at_intime >= 18) |>
+  
+  collect() |>
+  print(width = Inf)
 ```
 
 ### Q1.8 Preprocessing
@@ -187,6 +211,49 @@ Perform the following preprocessing steps. (i) Lump infrequent levels into "Othe
 Hint: Below is a numerical summary of my tibble after preprocessing:
 
 <iframe width=95% height="500" src="./mimic_icu_cohort_gtsummary.html"></iframe>
+
+```{r}
+mimic_icu_cohort <- mimic_icu_cohort |>
+  mutate(
+    first_careunit = fct_lump(first_careunit, n = 4, other_level = "Other"),
+    last_careunit = fct_lump(last_careunit, n = 4, other_level = "Other"),
+    admission_type = fct_lump(admission_type, n = 4, other_level = "Other"),
+    admission_location = fct_lump(admission_location, n = 3, 
+                                  other_level = "Other"),
+    discharge_location = fct_lump(discharge_location, n = 4, 
+                                  other_level = "Other")
+  ) |>
+  
+  mutate(
+    race = case_when(
+      str_detect(race, "ASIAN") ~ "ASIAN",
+      str_detect(race, "BLACK") ~ "BLACK",
+      str_detect(race, "HISPANIC") ~ "HISPANIC",
+      str_detect(race, "WHITE") ~ "WHITE",
+      TRUE ~ "Other"
+    )
+  ) |>
+  mutate(
+    race = factor(race, levels = 
+                    c("ASIAN", "BLACK", "HISPANIC", "WHITE", "Other"))
+  ) |>
+  
+  mutate(
+    los_long = los >= 2
+  )
+  
+
+```
+```{r}
+table_summary <- tbl_summary(
+  data = mimic_icu_cohort,
+  by = los_long,  
+  type = all_continuous() ~ "continuous2",
+)
+
+table_summary
+
+```
 
 ### Q1.9 Save the final tibble
 
@@ -212,3 +279,383 @@ Although it is not a good practice to add big data files to git, for grading pur
 ## Q2. Shiny app
 
 Develop a Shiny app for exploring the ICU cohort data created in Q1. The app should reside in the `mimiciv_shiny` folder. The app should contains at least two tabs. One tab provides easy access to the graphical and numerical summaries of variables (demographics, lab measurements, vitals) in the ICU cohort. The other allows user to choose a specific patient in the cohort and display the patient's ADT and ICU stay information as we did in Q1 of HW3.
+```{r}
+library(shiny)
+library(shinydashboard)
+library(DT)
+library(ggplot2) 
+library(dplyr)
+library(bigrquery)
+library(DBI)
+library(tidyverse)
+```
+
+### Frontend
+```{r}
+ui <- dashboardPage(
+  dashboardHeader(title = "ICU Cohort Explorer"),
+  dashboardSidebar(
+    sidebarMenu(
+      menuItem("Demographics Summary", tabName = "demographics_summary", 
+               icon = icon("dashboard")),
+      menuItem("Lab Summary", tabName = "lab_summary", 
+               icon = icon("dashboard")),
+      menuItem("Vital Summary", tabName = "vital_summary", 
+               icon = icon("dashboard")),
+      menuItem("Patient Details", tabName = "patient_details", 
+               icon = icon("user"))
+    )
+  ),
+  
+  dashboardBody(
+    tabItems(
+      tabItem(tabName = "demographics_summary",
+              fluidRow(
+                box(title = "Demographics Summary", status = "warning", 
+                    solidHeader = TRUE, width = 12,
+                    selectInput("demographics", "Choose a Category:",
+                                choices = list("Race" = "race",
+                                 "Insurance" = "insurance",
+                                 "Marital Status" = "marital_status",
+                                 "Gender" = "gender",
+                                 "Age at Intime" = "age_at_intime"),
+                                selected = "race")
+                ),
+                box(status = "info", solidHeader = TRUE, width = 12, 
+                    plotOutput("demographics_histogram"))
+                )
+              ),
+      
+      tabItem(tabName = "lab_summary",
+              fluidRow(
+                box(title = "Lab Summary", status = "warning", 
+                    solidHeader = TRUE, width = 12, 
+                    DT::dataTableOutput("lab_summary_table")),
+                box(title = "Density Plot", status = "info", 
+                    solidHeader = TRUE, width = 12, 
+                    selectInput("lab_measurement", "Select Lab Measurement:", 
+                                choices = c("Bicarbonate", "Chloride", 
+                                            "Creatinine", "Glucose", 
+                                            "Potassium", "Sodium", 
+                                            "Hematocrit", "white_blood_cells")),
+                    plotOutput("lab_plot"))
+                )
+              ),
+          
+      
+      tabItem(tabName = "vital_summary",
+              fluidRow(
+                box(title = "Vital Summary", status = "warning", 
+                    solidHeader = TRUE, width = 12, 
+                    DT::dataTableOutput("vital_summary_table")),
+                box(title = "Density Plot", status = "info", 
+                    solidHeader = TRUE, width = 12, 
+                    selectInput("vital_sign", "Select Vital Sign:", 
+                                choices = c("heart_rate", 
+                                        "non_invasive_blood_pressure_systolic", 
+                                        "non_invasive_blood_pressure_mean", 
+                                        "respiratory_rate", 
+                                        "temperature_fahrenheit")),
+                    plotOutput("vital_plot"))
+                )
+              ),
+
+      tabItem(tabName = "patient_details",
+              fluidRow(
+                box(title = "Enter Patient ID", status = "warning", 
+                    solidHeader = TRUE, width = 12,
+                    textInput("subject_id", label = "Enter a Patient ID:", 
+                              value = ""),
+                    actionButton("submit_btn", "Submit")
+                )
+              ),
+              fluidRow(
+                box(title = "Patient ADT Timeline", status = "info", 
+                    solidHeader = TRUE, width = 12, plotOutput("ADT_plot"))
+              ),
+              fluidRow(
+                box(title = "Patient ICU Stay Information", status = "info", 
+                    solidHeader = TRUE, width = 12, plotOutput("ICU_plot"))
+                )
+              )
+      )
+    )
+  )
+
+
+```
+
+### Backend
+```{r}
+generate_patient_plot <- function(id, datalist) {
+  
+  patients_data <- datalist$patients_data
+  admissions_data <- datalist$admissions_data
+  transfers_data <- datalist$transfers_data
+  labevents_data <- datalist$labevents_data
+  procedures_icd_data <- datalist$procedures_icd_data
+  diagnoses_icd_data <- datalist$diagnoses_icd_data
+  chartevents_data <- datalist$chartevents_data
+  
+  # process data
+  admissions_data <- admissions_data %>% arrange(admittime)
+  first_admission <- admissions_data %>%
+    arrange(admittime) %>%
+    slice(1)
+  
+  first_hadm_id <- first_admission$hadm_id
+  
+  adt_transfer_data <- transfers_data %>%
+    filter(hadm_id == first_hadm_id & eventtype != "discharge") %>%
+    mutate(icu_ccu = if_else(grepl("ICU|CCU", careunit, ignore.case = TRUE),
+                             "ICU/CCU", "Other")) %>%
+    mutate(event_start = intime, event_end = outtime) %>%
+    select(subject_id, hadm_id, eventtype, icu_ccu, 
+           careunit, event_start, event_end) %>%
+    arrange(event_start)
+  
+  lab_data <- labevents_data %>%
+    filter(hadm_id == first_hadm_id) %>%
+    select(charttime) %>%
+    arrange(charttime)
+  
+  selected_procedures <- procedures_icd_data %>%
+    filter(hadm_id == first_hadm_id) 
+  selected_procedures$procedure_type <- 
+    as.factor(selected_procedures$long_title) 
+  selected_procedures$chartdate <- 
+    as.POSIXct(selected_procedures$chartdate, tz = "UTC")
+
+  selected_diagnoses <- diagnoses_icd_data %>%
+    filter(hadm_id == first_hadm_id)%>%
+    slice(1:3)
+
+  top_diagnoses_titles <- selected_diagnoses$long_title
+  subtitle <- paste(top_diagnoses_titles, collapse = "\n")
+  
+  race <- first_admission$race
+  age <- patients_data$anchor_age
+  gender <- patients_data$gender
+  title <- paste("Patient", id, ",", gender, ",", age, "years old,", race)
+  
+  # Generate the plot
+  ADT_plot <- ggplot() +
+    # ADT
+    geom_segment(data = adt_transfer_data, 
+                 aes(x = event_start, xend = event_end,y = 'ADT', yend = 'ADT', 
+                     color = careunit, size = icu_ccu), show.legend = TRUE) +
+    scale_size_manual(values = c("ICU/CCU" = 5.0, "Other" = 1.0), 
+                      guide = FALSE) +
+    
+    # LAB
+    geom_point(data = lab_data, aes(x = charttime, y = 'LAB'), 
+               shape = 3, size = 3, show.legend = FALSE) +
+    
+    # Procedure
+    geom_point(data = selected_procedures, 
+               aes(x = chartdate, y = 'Procedure', shape = procedure_type), 
+               size = 3, show.legend = TRUE) +
+    
+    labs(title = title, subtitle = subtitle, x = "Calendar Time", y = "") +
+    theme(legend.position = "bottom",
+          legend.box = "vertical", 
+          legend.box.background = element_rect(colour = "transparent"), 
+          legend.margin = margin(t = 0, unit = "cm")) +
+    guides(color = guide_legend(title = "Care Unit", 
+                                override.aes = list(shape = NA), ncol = 3),
+           shape = guide_legend(title = "Procedure", 
+                                override.aes = 
+                                  list(linetype = "blank", size = 3), 
+                                ncol = 1)) +
+    scale_y_discrete(limits = c('Procedure', 'LAB', 'ADT'))
+  
+  ICU_plot <- ggplot(data = chartevents_data) + 
+    geom_line(mapping = 
+                aes(x = charttime, y = valuenum, color = abbreviation)) +
+    facet_grid(abbreviation ~ stay_id, scales = "free") +
+    labs(title = paste("Patient", id, "ICU stays - Vitals"),
+         x = "Time",
+         y = "Vital Value") +
+    theme() +
+    theme(legend.position = "none") + 
+    guides(x = guide_axis(n.dodge = 2))
+  
+  result <- list(ADT_plot = ADT_plot, ICU_plot = ICU_plot)
+  return(result)
+}
+
+```
+
+
+```{r}
+server <- function(input, output, session) {
+  # Read the dataset
+  mimic_icu_cohort <- readRDS("mimiciv_shiny/mimic_icu_cohort.rds")
+  
+  #Demographics
+  output$demographics_histogram <- renderPlot({
+    selected_data <- mimic_icu_cohort %>%
+      select(input$demographics) %>%
+      na.omit()
+    
+    ggplot(selected_data, aes_string(x = input$demographics)) +
+      geom_histogram(stat = "count", fill = "steelblue", color = "black") +
+      ylab("Frequency") +
+      xlab(input$demographics) +
+      theme_bw() +
+      theme(axis.text.x = element_text(hjust = 1))
+  })
+  
+  #Lab
+  output$lab_summary_table <- DT::renderDataTable({
+    summary_df <- sapply(
+      mimic_icu_cohort[, c("Bicarbonate", "Chloride", 
+                                              "Creatinine", "Glucose", 
+                                              "Potassium", "Sodium", 
+                                              "Hematocrit", "white_blood_cells")], 
+      function(x) c(max = max(x, na.rm = TRUE), 
+                    min = min(x, na.rm = TRUE), 
+                    mean = mean(x, na.rm = TRUE), 
+                    median = median(x, na.rm = TRUE)))
+    
+
+    summary_df <- as.data.frame(summary_df)
+    summary_df <- t(summary_df)
+    
+    DT::datatable(summary_df, options = list(pageLength = 5), rownames = TRUE)
+  })
+  
+
+  output$lab_plot <- renderPlot({
+    selected_lab_data <- mimic_icu_cohort[, c(input$lab_measurement), 
+                                          drop = FALSE]
+    selected_lab_data <- na.omit(selected_lab_data)
+    
+    ggplot(data = selected_lab_data, aes_string(x = input$lab_measurement)) +
+      geom_density(fill = "blue", alpha = 0.5) +
+      labs(x = input$lab_measurement, title = 
+             paste("Density Plot of", input$lab_measurement)) +
+      theme_bw()
+  })
+  
+  #Vitals
+  output$vital_summary_table <- DT::renderDataTable({
+    summary_df <- sapply(
+      mimic_icu_cohort[, c("heart_rate", "non_invasive_blood_pressure_systolic", 
+                           "non_invasive_blood_pressure_mean", 
+                           "respiratory_rate", "temperature_fahrenheit")], 
+      function(x) c(max = max(x, na.rm = TRUE), 
+                    min = min(x, na.rm = TRUE), 
+                    mean = mean(x, na.rm = TRUE), 
+                    median = median(x, na.rm = TRUE)))
+    
+    summary_df <- as.data.frame(summary_df)
+    summary_df <- t(summary_df)
+    
+    DT::datatable(summary_df, options = list(pageLength = 5), rownames = TRUE)
+  })
+  
+  output$vital_plot <- renderPlot({
+    selected_vital_data <- mimic_icu_cohort[, c(input$vital_sign), drop = FALSE]
+    selected_vital_data <- na.omit(selected_vital_data)
+    
+    ggplot(data = selected_vital_data, aes_string(x = input$vital_sign)) +
+      geom_density(fill = "blue", alpha = 0.5) +
+      labs(x = input$vital_sign, title = 
+             paste("Density Plot of", input$vital_sign)) +
+      theme_bw()
+  })
+
+  
+  # Patient Details
+  # Read patient data from database
+  patient_data <- reactive({
+    req(input$subject_id) # Ensure that the input is not empty
+    id <- as.numeric(input$subject_id)
+    
+    #Connect to database
+    satoken <- "biostat-203b-2024-winter-313290ce47a6.json"
+    bq_auth(path = satoken)
+    con_bq <- dbConnect(
+        bigrquery::bigquery(),
+        project = "biostat-203b-2024-winter",
+        dataset = "mimic4_v2_2",
+        billing = "biostat-203b-2024-winter"
+    )
+  
+    # SQL queries to fetch data for the specified subject_id
+    sql_patients <- sprintf("
+      SELECT * FROM `patients` WHERE subject_id = %d", id)
+    sql_admissions <- sprintf("
+      SELECT * FROM `admissions` WHERE subject_id = %d ORDER BY admittime", id)
+    sql_transfers <- sprintf("
+      SELECT * FROM `transfers` WHERE subject_id = %d", id)
+    sql_labevents <- sprintf("
+      SELECT le.*, li.label
+      FROM `labevents` AS le
+      LEFT JOIN `d_labitems` AS li ON le.itemid = li.itemid
+      WHERE le.subject_id = %d", id)
+    sql_procedures_icd <- sql_query <- sprintf("
+      SELECT p.subject_id, p.hadm_id, p.chartdate, p.icd_code, d.long_title
+      FROM procedures_icd AS p
+      LEFT JOIN d_icd_procedures AS d ON p.icd_code = d.icd_code
+      WHERE p.subject_id = %d", id)
+    sql_diagnoses_icd <- sprintf("
+      SELECT di.subject_id, di.hadm_id, di.icd_code, d.long_title
+      FROM diagnoses_icd AS di
+      LEFT JOIN d_icd_diagnoses AS d ON di.icd_code = d.icd_code
+      WHERE di.subject_id = %d", id)
+    sql_chartevents <- sprintf("
+      SELECT c.subject_id, c.stay_id, c.itemid, c.charttime, c.valuenum, 
+      d.label, d.abbreviation
+      FROM chartevents AS c
+      LEFT JOIN d_items AS d on d.itemid = c.itemid
+      WHERE c.itemid IN (220045, 220181, 220179, 223761, 220210) 
+      AND c.subject_id = %d", id)
+
+    # Fetching data
+    patients_data <- dbGetQuery(con_bq, sql_patients)
+    admissions_data <- dbGetQuery(con_bq, sql_admissions)
+    transfers_data <- dbGetQuery(con_bq, sql_transfers)
+    labevents_data <- dbGetQuery(con_bq, sql_labevents)
+    procedures_icd_data <- dbGetQuery(con_bq, sql_procedures_icd)
+    diagnoses_icd_data <- dbGetQuery(con_bq, sql_diagnoses_icd)
+    chartevents_data <- dbGetQuery(con_bq, sql_chartevents)
+    
+     return(list(
+      patients_data = patients_data, 
+      admissions_data = admissions_data, 
+      transfers_data = transfers_data, 
+      labevents_data = labevents_data, 
+      procedures_icd_data = procedures_icd_data, 
+      diagnoses_icd_data = diagnoses_icd_data, 
+      chartevents_data = chartevents_data
+    ))
+    
+  })
+
+  output$ADT_plot <- renderPlot({
+    req(patient_data())
+    datalist <- patient_data()
+    plot_data <- generate_patient_plot(input$subject_id, datalist)
+    plot_data$ADT_plot
+  })
+  
+  output$ICU_plot <- renderPlot({
+    req(patient_data())
+    datalist <- patient_data()
+    plot_data <- generate_patient_plot(input$subject_id, datalist)
+    plot_data$ICU_plot
+  })
+}
+
+```
+
+### Launch Server
+```{r}
+#| eval: false
+shinyApp(ui = ui, server = server)
+```
+
+
+
