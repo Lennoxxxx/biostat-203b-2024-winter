@@ -3109,7 +3109,7 @@ loaded via a namespace (and not attached):
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>memuse<span class="sc">::</span><span class="fu">Sys.meminfo</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Totalram:  15.621 GiB 
-Freeram:   13.810 GiB </code></pre>
+Freeram:   13.587 GiB </code></pre>
 </div>
 </div>
 <p>Load database libraries and the tidyverse frontend:</p>
@@ -3352,28 +3352,28 @@ ORDER BY is ignored in subqueries without LIMIT
 # Database: BigQueryConnection
    subject_id  stay_id Sodium Glucose Chloride Potassium Creatinine Hematocrit
         &lt;int&gt;    &lt;int&gt;  &lt;dbl&gt;   &lt;dbl&gt;    &lt;dbl&gt;     &lt;dbl&gt;      &lt;dbl&gt;      &lt;dbl&gt;
- 1   10002348 32610785    141      82      106       5          0.8       36.3
- 2   10017437 33439506    138      95      101       4.3        0.9       20.6
- 3   10030746 39243130    142     192      103       4.5        1.1       43.7
- 4   10049041 33222233    138      88      100       5.2        0.6       41.5
- 5   10076543 33461770    140     110      103       3.9        0.8       34.8
- 6   10091327 37208759    133     131      102       4.5        1.5       28  
- 7   10108435 39228147    142      74       99       4.9        1         31.8
- 8   10122346 33493190    145     161      108       3.8        0.9       38.7
- 9   10160202 38976156    127     146       92       4          1.3       31.5
-10   10183638 33514440    133     266      100       5.4        1.1       44.6
+ 1   10003400 34577403    132      70       94       4.4        2.1       25.7
+ 2   10008287 33348260    139      79      102       3.9        0.5       40  
+ 3   10017492 39543480    148     123      112       4.8        2.9       28.1
+ 4   10019003 34107647    136     108      104       3.4        3.2       32  
+ 5   10027445 34499716    133     227       98       4.1        0.9       32.9
+ 6   10047824 30473973    141      85      112       4.4        1         43.1
+ 7   10059217 33047330    136     164       98       3.9        1.1       39.9
+ 8   10074908 36580881    137     144       99       5          0.6       39.4
+ 9   10075960 31770149    134     127      101       4.5        1.8       32  
+10   10075960 37260608    135     117      101       4.8        1.7       31.9
    Bicarbonate white_blood_cells
          &lt;dbl&gt;             &lt;dbl&gt;
- 1          22               7.3
- 2          25              12.7
- 3          25               7.2
- 4          25               8.9
- 5          27               9.8
- 6          25              19.9
- 7          34               4.2
- 8          21               5.4
- 9          21               3.4
-10          21               8.7
+ 1          21               6.6
+ 2          26               6.6
+ 3          22               7.4
+ 4          16              90.7
+ 5          21              10.6
+ 6          20               7.3
+ 7          20              11.8
+ 8          23               9.1
+ 9          24               9  
+10          24               8.3
 # ℹ more rows</code></pre>
 </div>
 </div>
@@ -3422,28 +3422,28 @@ ORDER BY is ignored in subqueries without LIMIT
 # Database: BigQueryConnection
    subject_id  stay_id heart_rate respiratory_rate temperature_fahrenheit
         &lt;int&gt;    &lt;int&gt;      &lt;dbl&gt;            &lt;dbl&gt;                  &lt;dbl&gt;
- 1   10035168 36460006        108               20                   98.4
- 2   10087623 34155256        109               23                   97.5
- 3   10142412 34384364         68               15                   NA  
- 4   10148710 38369458         80               15                   98.7
- 5   10150567 36573378         80               19                   98.1
- 6   10177152 35339296         62               15                   98  
- 7   10215095 34221541         68               18                   97.8
- 8   10268150 30533259         49               19                   97.5
- 9   10285309 37303862         79               16                   97.8
-10   10328831 34168556        108               18                   98.4
+ 1   10014354 34600477         88               21                   97.8
+ 2   10097612 37463074         88               29                   97.6
+ 3   10107317 31699832        102               19                   98.9
+ 4   10108868 38662800         79               20                   97.7
+ 5   10183638 33514440        108               11                  101. 
+ 6   10213338 38069518         48               20                   98.8
+ 7   10312300 38840310         71                8                   97.3
+ 8   10362330 32943380        109               26                   98.6
+ 9   10401212 37251959         73               15                   98.2
+10   10401337 33935970         83               23                   98.5
    non_invasive_blood_pressure_mean non_invasive_blood_pressure_systolic
                               &lt;dbl&gt;                                &lt;dbl&gt;
- 1                               79                                  122
- 2                               61                                  108
- 3                               52                                   81
- 4                               75                                  105
- 5                               61                                   98
- 6                               79                                  110
- 7                               82                                  119
- 8                               75                                  147
- 9                               84                                  128
-10                               75                                  105
+ 1                              100                                  126
+ 2                               60                                   79
+ 3                               88                                  116
+ 4                               82                                  122
+ 5                               72                                  119
+ 6                               61                                  110
+ 7                               88                                  134
+ 8                               72                                  106
+ 9                               54                                  107
+10                               64                                   96
 # ℹ more rows</code></pre>
 </div>
 </div>
@@ -3561,11 +3561,11 @@ ORDER BY is ignored in subqueries without LIMIT
 10    141     118      104       3.3        0.6       40.2          23
    white_blood_cells heart_rate respiratory_rate temperature_fahrenheit
                &lt;dbl&gt;      &lt;dbl&gt;            &lt;dbl&gt;                  &lt;dbl&gt;
- 1              NA           86               22                   98.4
+ 1              NA           89               19                   98.4
  2              17.8         73               19                   97.5
  3              NA           70               17                   99.9
  4               7.1         94               18                   98.3
- 5              NA           75               21                   98.2
+ 5              NA           75               12                   98.2
  6              10.2         72               15                   97.6
  7               7.6         66               10                   98.2
  8               8.6         76               11                   98.6
@@ -3576,7 +3576,7 @@ ORDER BY is ignored in subqueries without LIMIT
  1                               75                                  108
  2                               79                                  136
  3                               67                                  103
- 4                               83                                   98
+ 4                               81                                   98
  5                               87                                  125
  6                               85                                  133
  7                               88                                  122
@@ -3645,20 +3645,20 @@ ORDER BY is ignored in subqueries without LIMIT
 <span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a>table_summary</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 
-<div id="bzyekuahqf" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
-<style>#bzyekuahqf table {
+<div id="nfwiyqyqdg" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#nfwiyqyqdg table {
 font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
 -webkit-font-smoothing: antialiased;
 -moz-osx-font-smoothing: grayscale;
 }
-#bzyekuahqf thead, #bzyekuahqf tbody, #bzyekuahqf tfoot, #bzyekuahqf tr, #bzyekuahqf td, #bzyekuahqf th {
+#nfwiyqyqdg thead, #nfwiyqyqdg tbody, #nfwiyqyqdg tfoot, #nfwiyqyqdg tr, #nfwiyqyqdg td, #nfwiyqyqdg th {
 border-style: none;
 }
-#bzyekuahqf p {
+#nfwiyqyqdg p {
 margin: 0;
 padding: 0;
 }
-#bzyekuahqf .gt_table {
+#nfwiyqyqdg .gt_table {
 display: table;
 border-collapse: collapse;
 line-height: normal;
@@ -3683,11 +3683,11 @@ border-left-style: none;
 border-left-width: 2px;
 border-left-color: #D3D3D3;
 }
-#bzyekuahqf .gt_caption {
+#nfwiyqyqdg .gt_caption {
 padding-top: 4px;
 padding-bottom: 4px;
 }
-#bzyekuahqf .gt_title {
+#nfwiyqyqdg .gt_title {
 color: #333333;
 font-size: 125%;
 font-weight: initial;
@@ -3698,7 +3698,7 @@ padding-right: 5px;
 border-bottom-color: #FFFFFF;
 border-bottom-width: 0;
 }
-#bzyekuahqf .gt_subtitle {
+#nfwiyqyqdg .gt_subtitle {
 color: #333333;
 font-size: 85%;
 font-weight: initial;
@@ -3709,7 +3709,7 @@ padding-right: 5px;
 border-top-color: #FFFFFF;
 border-top-width: 0;
 }
-#bzyekuahqf .gt_heading {
+#nfwiyqyqdg .gt_heading {
 background-color: #FFFFFF;
 text-align: center;
 border-bottom-color: #FFFFFF;
@@ -3720,12 +3720,12 @@ border-right-style: none;
 border-right-width: 1px;
 border-right-color: #D3D3D3;
 }
-#bzyekuahqf .gt_bottom_border {
+#nfwiyqyqdg .gt_bottom_border {
 border-bottom-style: solid;
 border-bottom-width: 2px;
 border-bottom-color: #D3D3D3;
 }
-#bzyekuahqf .gt_col_headings {
+#nfwiyqyqdg .gt_col_headings {
 border-top-style: solid;
 border-top-width: 2px;
 border-top-color: #D3D3D3;
@@ -3739,7 +3739,7 @@ border-right-style: none;
 border-right-width: 1px;
 border-right-color: #D3D3D3;
 }
-#bzyekuahqf .gt_col_heading {
+#nfwiyqyqdg .gt_col_heading {
 color: #333333;
 background-color: #FFFFFF;
 font-size: 100%;
@@ -3758,7 +3758,7 @@ padding-left: 5px;
 padding-right: 5px;
 overflow-x: hidden;
 }
-#bzyekuahqf .gt_column_spanner_outer {
+#nfwiyqyqdg .gt_column_spanner_outer {
 color: #333333;
 background-color: #FFFFFF;
 font-size: 100%;
@@ -3769,13 +3769,13 @@ padding-bottom: 0;
 padding-left: 4px;
 padding-right: 4px;
 }
-#bzyekuahqf .gt_column_spanner_outer:first-child {
+#nfwiyqyqdg .gt_column_spanner_outer:first-child {
 padding-left: 0;
 }
-#bzyekuahqf .gt_column_spanner_outer:last-child {
+#nfwiyqyqdg .gt_column_spanner_outer:last-child {
 padding-right: 0;
 }
-#bzyekuahqf .gt_column_spanner {
+#nfwiyqyqdg .gt_column_spanner {
 border-bottom-style: solid;
 border-bottom-width: 2px;
 border-bottom-color: #D3D3D3;
@@ -3786,10 +3786,10 @@ overflow-x: hidden;
 display: inline-block;
 width: 100%;
 }
-#bzyekuahqf .gt_spanner_row {
+#nfwiyqyqdg .gt_spanner_row {
 border-bottom-style: hidden;
 }
-#bzyekuahqf .gt_group_heading {
+#nfwiyqyqdg .gt_group_heading {
 padding-top: 8px;
 padding-bottom: 8px;
 padding-left: 5px;
@@ -3814,7 +3814,7 @@ border-right-color: #D3D3D3;
 vertical-align: middle;
 text-align: left;
 }
-#bzyekuahqf .gt_empty_group_heading {
+#nfwiyqyqdg .gt_empty_group_heading {
 padding: 0.5px;
 color: #333333;
 background-color: #FFFFFF;
@@ -3828,13 +3828,13 @@ border-bottom-width: 2px;
 border-bottom-color: #D3D3D3;
 vertical-align: middle;
 }
-#bzyekuahqf .gt_from_md > :first-child {
+#nfwiyqyqdg .gt_from_md > :first-child {
 margin-top: 0;
 }
-#bzyekuahqf .gt_from_md > :last-child {
+#nfwiyqyqdg .gt_from_md > :last-child {
 margin-bottom: 0;
 }
-#bzyekuahqf .gt_row {
+#nfwiyqyqdg .gt_row {
 padding-top: 8px;
 padding-bottom: 8px;
 padding-left: 5px;
@@ -3852,7 +3852,7 @@ border-right-color: #D3D3D3;
 vertical-align: middle;
 overflow-x: hidden;
 }
-#bzyekuahqf .gt_stub {
+#nfwiyqyqdg .gt_stub {
 color: #333333;
 background-color: #FFFFFF;
 font-size: 100%;
@@ -3864,7 +3864,7 @@ border-right-color: #D3D3D3;
 padding-left: 5px;
 padding-right: 5px;
 }
-#bzyekuahqf .gt_stub_row_group {
+#nfwiyqyqdg .gt_stub_row_group {
 color: #333333;
 background-color: #FFFFFF;
 font-size: 100%;
@@ -3877,13 +3877,13 @@ padding-left: 5px;
 padding-right: 5px;
 vertical-align: top;
 }
-#bzyekuahqf .gt_row_group_first td {
+#nfwiyqyqdg .gt_row_group_first td {
 border-top-width: 2px;
 }
-#bzyekuahqf .gt_row_group_first th {
+#nfwiyqyqdg .gt_row_group_first th {
 border-top-width: 2px;
 }
-#bzyekuahqf .gt_summary_row {
+#nfwiyqyqdg .gt_summary_row {
 color: #333333;
 background-color: #FFFFFF;
 text-transform: inherit;
@@ -3892,14 +3892,14 @@ padding-bottom: 8px;
 padding-left: 5px;
 padding-right: 5px;
 }
-#bzyekuahqf .gt_first_summary_row {
+#nfwiyqyqdg .gt_first_summary_row {
 border-top-style: solid;
 border-top-color: #D3D3D3;
 }
-#bzyekuahqf .gt_first_summary_row.thick {
+#nfwiyqyqdg .gt_first_summary_row.thick {
 border-top-width: 2px;
 }
-#bzyekuahqf .gt_last_summary_row {
+#nfwiyqyqdg .gt_last_summary_row {
 padding-top: 8px;
 padding-bottom: 8px;
 padding-left: 5px;
@@ -3908,7 +3908,7 @@ border-bottom-style: solid;
 border-bottom-width: 2px;
 border-bottom-color: #D3D3D3;
 }
-#bzyekuahqf .gt_grand_summary_row {
+#nfwiyqyqdg .gt_grand_summary_row {
 color: #333333;
 background-color: #FFFFFF;
 text-transform: inherit;
@@ -3917,7 +3917,7 @@ padding-bottom: 8px;
 padding-left: 5px;
 padding-right: 5px;
 }
-#bzyekuahqf .gt_first_grand_summary_row {
+#nfwiyqyqdg .gt_first_grand_summary_row {
 padding-top: 8px;
 padding-bottom: 8px;
 padding-left: 5px;
@@ -3926,7 +3926,7 @@ border-top-style: double;
 border-top-width: 6px;
 border-top-color: #D3D3D3;
 }
-#bzyekuahqf .gt_last_grand_summary_row_top {
+#nfwiyqyqdg .gt_last_grand_summary_row_top {
 padding-top: 8px;
 padding-bottom: 8px;
 padding-left: 5px;
@@ -3935,10 +3935,10 @@ border-bottom-style: double;
 border-bottom-width: 6px;
 border-bottom-color: #D3D3D3;
 }
-#bzyekuahqf .gt_striped {
+#nfwiyqyqdg .gt_striped {
 background-color: rgba(128, 128, 128, 0.05);
 }
-#bzyekuahqf .gt_table_body {
+#nfwiyqyqdg .gt_table_body {
 border-top-style: solid;
 border-top-width: 2px;
 border-top-color: #D3D3D3;
@@ -3946,7 +3946,7 @@ border-bottom-style: solid;
 border-bottom-width: 2px;
 border-bottom-color: #D3D3D3;
 }
-#bzyekuahqf .gt_footnotes {
+#nfwiyqyqdg .gt_footnotes {
 color: #333333;
 background-color: #FFFFFF;
 border-bottom-style: none;
@@ -3959,7 +3959,7 @@ border-right-style: none;
 border-right-width: 2px;
 border-right-color: #D3D3D3;
 }
-#bzyekuahqf .gt_footnote {
+#nfwiyqyqdg .gt_footnote {
 margin: 0px;
 font-size: 90%;
 padding-top: 4px;
@@ -3967,7 +3967,7 @@ padding-bottom: 4px;
 padding-left: 5px;
 padding-right: 5px;
 }
-#bzyekuahqf .gt_sourcenotes {
+#nfwiyqyqdg .gt_sourcenotes {
 color: #333333;
 background-color: #FFFFFF;
 border-bottom-style: none;
@@ -3980,57 +3980,57 @@ border-right-style: none;
 border-right-width: 2px;
 border-right-color: #D3D3D3;
 }
-#bzyekuahqf .gt_sourcenote {
+#nfwiyqyqdg .gt_sourcenote {
 font-size: 90%;
 padding-top: 4px;
 padding-bottom: 4px;
 padding-left: 5px;
 padding-right: 5px;
 }
-#bzyekuahqf .gt_left {
+#nfwiyqyqdg .gt_left {
 text-align: left;
 }
-#bzyekuahqf .gt_center {
+#nfwiyqyqdg .gt_center {
 text-align: center;
 }
-#bzyekuahqf .gt_right {
+#nfwiyqyqdg .gt_right {
 text-align: right;
 font-variant-numeric: tabular-nums;
 }
-#bzyekuahqf .gt_font_normal {
+#nfwiyqyqdg .gt_font_normal {
 font-weight: normal;
 }
-#bzyekuahqf .gt_font_bold {
+#nfwiyqyqdg .gt_font_bold {
 font-weight: bold;
 }
-#bzyekuahqf .gt_font_italic {
+#nfwiyqyqdg .gt_font_italic {
 font-style: italic;
 }
-#bzyekuahqf .gt_super {
+#nfwiyqyqdg .gt_super {
 font-size: 65%;
 }
-#bzyekuahqf .gt_footnote_marks {
+#nfwiyqyqdg .gt_footnote_marks {
 font-size: 75%;
 vertical-align: 0.4em;
 position: initial;
 }
-#bzyekuahqf .gt_asterisk {
+#nfwiyqyqdg .gt_asterisk {
 font-size: 100%;
 vertical-align: 0;
 }
-#bzyekuahqf .gt_indent_1 {
+#nfwiyqyqdg .gt_indent_1 {
 text-indent: 5px;
 }
-#bzyekuahqf .gt_indent_2 {
+#nfwiyqyqdg .gt_indent_2 {
 text-indent: 10px;
 }
-#bzyekuahqf .gt_indent_3 {
+#nfwiyqyqdg .gt_indent_3 {
 text-indent: 15px;
 }
-#bzyekuahqf .gt_indent_4 {
+#nfwiyqyqdg .gt_indent_4 {
 text-indent: 20px;
 }
-#bzyekuahqf .gt_indent_5 {
+#nfwiyqyqdg .gt_indent_5 {
 text-indent: 25px;
 }
 </style>
@@ -7935,83 +7935,86 @@ text-indent: 25px;
 <span id="cb31-17"><a href="#cb31-17" aria-hidden="true" tabindex="-1"></a>  first_hadm_id <span class="ot">&lt;-</span> first_admission<span class="sc">$</span>hadm_id</span>
 <span id="cb31-18"><a href="#cb31-18" aria-hidden="true" tabindex="-1"></a>  </span>
 <span id="cb31-19"><a href="#cb31-19" aria-hidden="true" tabindex="-1"></a>  adt_transfer_data <span class="ot">&lt;-</span> transfers_data <span class="sc">%&gt;%</span></span>
-<span id="cb31-20"><a href="#cb31-20" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(hadm_id <span class="sc">==</span> first_hadm_id <span class="sc">&amp;</span> eventtype <span class="sc">!=</span> <span class="st">&quot;discharge&quot;</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb31-21"><a href="#cb31-21" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">icu_ccu =</span> <span class="fu">if_else</span>(<span class="fu">grepl</span>(<span class="st">&quot;ICU|CCU&quot;</span>, careunit, <span class="at">ignore.case =</span> <span class="cn">TRUE</span>),</span>
-<span id="cb31-22"><a href="#cb31-22" aria-hidden="true" tabindex="-1"></a>                             <span class="st">&quot;ICU/CCU&quot;</span>, <span class="st">&quot;Other&quot;</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb31-23"><a href="#cb31-23" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">event_start =</span> intime, <span class="at">event_end =</span> outtime) <span class="sc">%&gt;%</span></span>
-<span id="cb31-24"><a href="#cb31-24" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(subject_id, hadm_id, eventtype, icu_ccu, </span>
-<span id="cb31-25"><a href="#cb31-25" aria-hidden="true" tabindex="-1"></a>           careunit, event_start, event_end) <span class="sc">%&gt;%</span></span>
-<span id="cb31-26"><a href="#cb31-26" aria-hidden="true" tabindex="-1"></a>    <span class="fu">arrange</span>(event_start)</span>
-<span id="cb31-27"><a href="#cb31-27" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb31-28"><a href="#cb31-28" aria-hidden="true" tabindex="-1"></a>  lab_data <span class="ot">&lt;-</span> labevents_data <span class="sc">%&gt;%</span></span>
-<span id="cb31-29"><a href="#cb31-29" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(hadm_id <span class="sc">==</span> first_hadm_id) <span class="sc">%&gt;%</span></span>
-<span id="cb31-30"><a href="#cb31-30" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(charttime) <span class="sc">%&gt;%</span></span>
-<span id="cb31-31"><a href="#cb31-31" aria-hidden="true" tabindex="-1"></a>    <span class="fu">arrange</span>(charttime)</span>
-<span id="cb31-32"><a href="#cb31-32" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb31-33"><a href="#cb31-33" aria-hidden="true" tabindex="-1"></a>  selected_procedures <span class="ot">&lt;-</span> procedures_icd_data <span class="sc">%&gt;%</span></span>
-<span id="cb31-34"><a href="#cb31-34" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(hadm_id <span class="sc">==</span> first_hadm_id) </span>
-<span id="cb31-35"><a href="#cb31-35" aria-hidden="true" tabindex="-1"></a>  selected_procedures<span class="sc">$</span>procedure_type <span class="ot">&lt;-</span> </span>
-<span id="cb31-36"><a href="#cb31-36" aria-hidden="true" tabindex="-1"></a>    <span class="fu">as.factor</span>(selected_procedures<span class="sc">$</span>long_title) </span>
-<span id="cb31-37"><a href="#cb31-37" aria-hidden="true" tabindex="-1"></a>  selected_procedures<span class="sc">$</span>chartdate <span class="ot">&lt;-</span> </span>
-<span id="cb31-38"><a href="#cb31-38" aria-hidden="true" tabindex="-1"></a>    <span class="fu">as.POSIXct</span>(selected_procedures<span class="sc">$</span>chartdate, <span class="at">tz =</span> <span class="st">&quot;UTC&quot;</span>)</span>
-<span id="cb31-39"><a href="#cb31-39" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb31-40"><a href="#cb31-40" aria-hidden="true" tabindex="-1"></a>  selected_diagnoses <span class="ot">&lt;-</span> diagnoses_icd_data <span class="sc">%&gt;%</span></span>
-<span id="cb31-41"><a href="#cb31-41" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(hadm_id <span class="sc">==</span> first_hadm_id)<span class="sc">%&gt;%</span></span>
-<span id="cb31-42"><a href="#cb31-42" aria-hidden="true" tabindex="-1"></a>    <span class="fu">slice</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>)</span>
-<span id="cb31-43"><a href="#cb31-43" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb31-44"><a href="#cb31-44" aria-hidden="true" tabindex="-1"></a>  top_diagnoses_titles <span class="ot">&lt;-</span> selected_diagnoses<span class="sc">$</span>long_title</span>
-<span id="cb31-45"><a href="#cb31-45" aria-hidden="true" tabindex="-1"></a>  subtitle <span class="ot">&lt;-</span> <span class="fu">paste</span>(top_diagnoses_titles, <span class="at">collapse =</span> <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
-<span id="cb31-46"><a href="#cb31-46" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb31-47"><a href="#cb31-47" aria-hidden="true" tabindex="-1"></a>  race <span class="ot">&lt;-</span> first_admission<span class="sc">$</span>race</span>
-<span id="cb31-48"><a href="#cb31-48" aria-hidden="true" tabindex="-1"></a>  age <span class="ot">&lt;-</span> patients_data<span class="sc">$</span>anchor_age</span>
-<span id="cb31-49"><a href="#cb31-49" aria-hidden="true" tabindex="-1"></a>  gender <span class="ot">&lt;-</span> patients_data<span class="sc">$</span>gender</span>
-<span id="cb31-50"><a href="#cb31-50" aria-hidden="true" tabindex="-1"></a>  title <span class="ot">&lt;-</span> <span class="fu">paste</span>(<span class="st">&quot;Patient&quot;</span>, id, <span class="st">&quot;,&quot;</span>, gender, <span class="st">&quot;,&quot;</span>, age, <span class="st">&quot;years old,&quot;</span>, race)</span>
-<span id="cb31-51"><a href="#cb31-51" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb31-52"><a href="#cb31-52" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Generate the plot</span></span>
-<span id="cb31-53"><a href="#cb31-53" aria-hidden="true" tabindex="-1"></a>  ADT_plot <span class="ot">&lt;-</span> <span class="fu">ggplot</span>() <span class="sc">+</span></span>
-<span id="cb31-54"><a href="#cb31-54" aria-hidden="true" tabindex="-1"></a>    <span class="co"># ADT</span></span>
-<span id="cb31-55"><a href="#cb31-55" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_segment</span>(<span class="at">data =</span> adt_transfer_data, </span>
-<span id="cb31-56"><a href="#cb31-56" aria-hidden="true" tabindex="-1"></a>                 <span class="fu">aes</span>(<span class="at">x =</span> event_start, <span class="at">xend =</span> event_end,<span class="at">y =</span> <span class="st">&#39;ADT&#39;</span>, <span class="at">yend =</span> <span class="st">&#39;ADT&#39;</span>, </span>
-<span id="cb31-57"><a href="#cb31-57" aria-hidden="true" tabindex="-1"></a>                     <span class="at">color =</span> careunit, <span class="at">size =</span> icu_ccu), <span class="at">show.legend =</span> <span class="cn">TRUE</span>) <span class="sc">+</span></span>
-<span id="cb31-58"><a href="#cb31-58" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_size_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">&quot;ICU/CCU&quot;</span> <span class="ot">=</span> <span class="fl">5.0</span>, <span class="st">&quot;Other&quot;</span> <span class="ot">=</span> <span class="fl">1.0</span>), </span>
-<span id="cb31-59"><a href="#cb31-59" aria-hidden="true" tabindex="-1"></a>                      <span class="at">guide =</span> <span class="cn">FALSE</span>) <span class="sc">+</span></span>
-<span id="cb31-60"><a href="#cb31-60" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb31-61"><a href="#cb31-61" aria-hidden="true" tabindex="-1"></a>    <span class="co"># LAB</span></span>
-<span id="cb31-62"><a href="#cb31-62" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_point</span>(<span class="at">data =</span> lab_data, <span class="fu">aes</span>(<span class="at">x =</span> charttime, <span class="at">y =</span> <span class="st">&#39;LAB&#39;</span>), </span>
-<span id="cb31-63"><a href="#cb31-63" aria-hidden="true" tabindex="-1"></a>               <span class="at">shape =</span> <span class="dv">3</span>, <span class="at">size =</span> <span class="dv">3</span>, <span class="at">show.legend =</span> <span class="cn">FALSE</span>) <span class="sc">+</span></span>
-<span id="cb31-64"><a href="#cb31-64" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb31-65"><a href="#cb31-65" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Procedure</span></span>
-<span id="cb31-66"><a href="#cb31-66" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_point</span>(<span class="at">data =</span> selected_procedures, </span>
-<span id="cb31-67"><a href="#cb31-67" aria-hidden="true" tabindex="-1"></a>               <span class="fu">aes</span>(<span class="at">x =</span> chartdate, <span class="at">y =</span> <span class="st">&#39;Procedure&#39;</span>, <span class="at">shape =</span> procedure_type), </span>
-<span id="cb31-68"><a href="#cb31-68" aria-hidden="true" tabindex="-1"></a>               <span class="at">size =</span> <span class="dv">3</span>, <span class="at">show.legend =</span> <span class="cn">TRUE</span>) <span class="sc">+</span></span>
-<span id="cb31-69"><a href="#cb31-69" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb31-70"><a href="#cb31-70" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> title, <span class="at">subtitle =</span> subtitle, <span class="at">x =</span> <span class="st">&quot;Calendar Time&quot;</span>, <span class="at">y =</span> <span class="st">&quot;&quot;</span>) <span class="sc">+</span></span>
-<span id="cb31-71"><a href="#cb31-71" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">&quot;bottom&quot;</span>,</span>
-<span id="cb31-72"><a href="#cb31-72" aria-hidden="true" tabindex="-1"></a>          <span class="at">legend.box =</span> <span class="st">&quot;vertical&quot;</span>, </span>
-<span id="cb31-73"><a href="#cb31-73" aria-hidden="true" tabindex="-1"></a>          <span class="at">legend.box.background =</span> <span class="fu">element_rect</span>(<span class="at">colour =</span> <span class="st">&quot;transparent&quot;</span>), </span>
-<span id="cb31-74"><a href="#cb31-74" aria-hidden="true" tabindex="-1"></a>          <span class="at">legend.margin =</span> <span class="fu">margin</span>(<span class="at">t =</span> <span class="dv">0</span>, <span class="at">unit =</span> <span class="st">&quot;cm&quot;</span>)) <span class="sc">+</span></span>
-<span id="cb31-75"><a href="#cb31-75" aria-hidden="true" tabindex="-1"></a>    <span class="fu">guides</span>(<span class="at">color =</span> <span class="fu">guide_legend</span>(<span class="at">title =</span> <span class="st">&quot;Care Unit&quot;</span>, </span>
-<span id="cb31-76"><a href="#cb31-76" aria-hidden="true" tabindex="-1"></a>                                <span class="at">override.aes =</span> <span class="fu">list</span>(<span class="at">shape =</span> <span class="cn">NA</span>), <span class="at">ncol =</span> <span class="dv">3</span>),</span>
-<span id="cb31-77"><a href="#cb31-77" aria-hidden="true" tabindex="-1"></a>           <span class="at">shape =</span> <span class="fu">guide_legend</span>(<span class="at">title =</span> <span class="st">&quot;Procedure&quot;</span>, </span>
-<span id="cb31-78"><a href="#cb31-78" aria-hidden="true" tabindex="-1"></a>                                <span class="at">override.aes =</span> </span>
-<span id="cb31-79"><a href="#cb31-79" aria-hidden="true" tabindex="-1"></a>                                  <span class="fu">list</span>(<span class="at">linetype =</span> <span class="st">&quot;blank&quot;</span>, <span class="at">size =</span> <span class="dv">3</span>), </span>
-<span id="cb31-80"><a href="#cb31-80" aria-hidden="true" tabindex="-1"></a>                                <span class="at">ncol =</span> <span class="dv">1</span>)) <span class="sc">+</span></span>
-<span id="cb31-81"><a href="#cb31-81" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_y_discrete</span>(<span class="at">limits =</span> <span class="fu">c</span>(<span class="st">&#39;Procedure&#39;</span>, <span class="st">&#39;LAB&#39;</span>, <span class="st">&#39;ADT&#39;</span>))</span>
-<span id="cb31-82"><a href="#cb31-82" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb31-83"><a href="#cb31-83" aria-hidden="true" tabindex="-1"></a>  ICU_plot <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(<span class="at">data =</span> chartevents_data) <span class="sc">+</span> </span>
-<span id="cb31-84"><a href="#cb31-84" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_line</span>(<span class="at">mapping =</span> </span>
-<span id="cb31-85"><a href="#cb31-85" aria-hidden="true" tabindex="-1"></a>                <span class="fu">aes</span>(<span class="at">x =</span> charttime, <span class="at">y =</span> valuenum, <span class="at">color =</span> abbreviation)) <span class="sc">+</span></span>
-<span id="cb31-86"><a href="#cb31-86" aria-hidden="true" tabindex="-1"></a>    <span class="fu">facet_grid</span>(abbreviation <span class="sc">~</span> stay_id, <span class="at">scales =</span> <span class="st">&quot;free&quot;</span>) <span class="sc">+</span></span>
-<span id="cb31-87"><a href="#cb31-87" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="fu">paste</span>(<span class="st">&quot;Patient&quot;</span>, id, <span class="st">&quot;ICU stays - Vitals&quot;</span>),</span>
-<span id="cb31-88"><a href="#cb31-88" aria-hidden="true" tabindex="-1"></a>         <span class="at">x =</span> <span class="st">&quot;Time&quot;</span>,</span>
-<span id="cb31-89"><a href="#cb31-89" aria-hidden="true" tabindex="-1"></a>         <span class="at">y =</span> <span class="st">&quot;Vital Value&quot;</span>) <span class="sc">+</span></span>
-<span id="cb31-90"><a href="#cb31-90" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme</span>() <span class="sc">+</span></span>
-<span id="cb31-91"><a href="#cb31-91" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">&quot;none&quot;</span>) <span class="sc">+</span> </span>
-<span id="cb31-92"><a href="#cb31-92" aria-hidden="true" tabindex="-1"></a>    <span class="fu">guides</span>(<span class="at">x =</span> <span class="fu">guide_axis</span>(<span class="at">n.dodge =</span> <span class="dv">2</span>))</span>
-<span id="cb31-93"><a href="#cb31-93" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb31-94"><a href="#cb31-94" aria-hidden="true" tabindex="-1"></a>  result <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="at">ADT_plot =</span> ADT_plot, <span class="at">ICU_plot =</span> ICU_plot)</span>
-<span id="cb31-95"><a href="#cb31-95" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(result)</span>
-<span id="cb31-96"><a href="#cb31-96" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb31-20"><a href="#cb31-20" aria-hidden="true" tabindex="-1"></a>    <span class="co">#filter(hadm_id == first_hadm_id &amp; eventtype != &quot;discharge&quot;) %&gt;%</span></span>
+<span id="cb31-21"><a href="#cb31-21" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(eventtype <span class="sc">!=</span> <span class="st">&quot;discharge&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb31-22"><a href="#cb31-22" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">icu_ccu =</span> <span class="fu">if_else</span>(<span class="fu">grepl</span>(<span class="st">&quot;ICU|CCU&quot;</span>, careunit, <span class="at">ignore.case =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb31-23"><a href="#cb31-23" aria-hidden="true" tabindex="-1"></a>                             <span class="st">&quot;ICU/CCU&quot;</span>, <span class="st">&quot;Other&quot;</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb31-24"><a href="#cb31-24" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">event_start =</span> intime, <span class="at">event_end =</span> outtime) <span class="sc">%&gt;%</span></span>
+<span id="cb31-25"><a href="#cb31-25" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(subject_id, hadm_id, eventtype, icu_ccu, </span>
+<span id="cb31-26"><a href="#cb31-26" aria-hidden="true" tabindex="-1"></a>           careunit, event_start, event_end) <span class="sc">%&gt;%</span></span>
+<span id="cb31-27"><a href="#cb31-27" aria-hidden="true" tabindex="-1"></a>    <span class="fu">arrange</span>(event_start)</span>
+<span id="cb31-28"><a href="#cb31-28" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb31-29"><a href="#cb31-29" aria-hidden="true" tabindex="-1"></a>  lab_data <span class="ot">&lt;-</span> labevents_data <span class="sc">%&gt;%</span></span>
+<span id="cb31-30"><a href="#cb31-30" aria-hidden="true" tabindex="-1"></a>    <span class="co">#filter(hadm_id == first_hadm_id) %&gt;%</span></span>
+<span id="cb31-31"><a href="#cb31-31" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(charttime) <span class="sc">%&gt;%</span></span>
+<span id="cb31-32"><a href="#cb31-32" aria-hidden="true" tabindex="-1"></a>    <span class="fu">arrange</span>(charttime)</span>
+<span id="cb31-33"><a href="#cb31-33" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb31-34"><a href="#cb31-34" aria-hidden="true" tabindex="-1"></a>  selected_procedures <span class="ot">&lt;-</span> procedures_icd_data <span class="co">#%&gt;%</span></span>
+<span id="cb31-35"><a href="#cb31-35" aria-hidden="true" tabindex="-1"></a>    <span class="co">#filter(hadm_id == first_hadm_id) </span></span>
+<span id="cb31-36"><a href="#cb31-36" aria-hidden="true" tabindex="-1"></a>  selected_procedures<span class="sc">$</span>procedure_type <span class="ot">&lt;-</span> </span>
+<span id="cb31-37"><a href="#cb31-37" aria-hidden="true" tabindex="-1"></a>    <span class="fu">as.factor</span>(selected_procedures<span class="sc">$</span>long_title) </span>
+<span id="cb31-38"><a href="#cb31-38" aria-hidden="true" tabindex="-1"></a>  selected_procedures<span class="sc">$</span>chartdate <span class="ot">&lt;-</span> </span>
+<span id="cb31-39"><a href="#cb31-39" aria-hidden="true" tabindex="-1"></a>    <span class="fu">as.POSIXct</span>(selected_procedures<span class="sc">$</span>chartdate, <span class="at">tz =</span> <span class="st">&quot;UTC&quot;</span>)</span>
+<span id="cb31-40"><a href="#cb31-40" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-41"><a href="#cb31-41" aria-hidden="true" tabindex="-1"></a>  selected_diagnoses <span class="ot">&lt;-</span> diagnoses_icd_data <span class="sc">%&gt;%</span></span>
+<span id="cb31-42"><a href="#cb31-42" aria-hidden="true" tabindex="-1"></a>    <span class="co">#filter(hadm_id == first_hadm_id)%&gt;%</span></span>
+<span id="cb31-43"><a href="#cb31-43" aria-hidden="true" tabindex="-1"></a>    <span class="fu">slice</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>)</span>
+<span id="cb31-44"><a href="#cb31-44" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-45"><a href="#cb31-45" aria-hidden="true" tabindex="-1"></a>  top_diagnoses_titles <span class="ot">&lt;-</span> selected_diagnoses<span class="sc">$</span>long_title</span>
+<span id="cb31-46"><a href="#cb31-46" aria-hidden="true" tabindex="-1"></a>  subtitle <span class="ot">&lt;-</span> <span class="fu">paste</span>(top_diagnoses_titles, <span class="at">collapse =</span> <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb31-47"><a href="#cb31-47" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb31-48"><a href="#cb31-48" aria-hidden="true" tabindex="-1"></a>  race <span class="ot">&lt;-</span> first_admission<span class="sc">$</span>race</span>
+<span id="cb31-49"><a href="#cb31-49" aria-hidden="true" tabindex="-1"></a>  age <span class="ot">&lt;-</span> patients_data<span class="sc">$</span>anchor_age</span>
+<span id="cb31-50"><a href="#cb31-50" aria-hidden="true" tabindex="-1"></a>  gender <span class="ot">&lt;-</span> patients_data<span class="sc">$</span>gender</span>
+<span id="cb31-51"><a href="#cb31-51" aria-hidden="true" tabindex="-1"></a>  title <span class="ot">&lt;-</span> <span class="fu">paste</span>(<span class="st">&quot;Patient&quot;</span>, id, <span class="st">&quot;,&quot;</span>, gender, <span class="st">&quot;,&quot;</span>, age, <span class="st">&quot;years old,&quot;</span>, race)</span>
+<span id="cb31-52"><a href="#cb31-52" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb31-53"><a href="#cb31-53" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Generate the plot</span></span>
+<span id="cb31-54"><a href="#cb31-54" aria-hidden="true" tabindex="-1"></a>  ADT_plot <span class="ot">&lt;-</span> <span class="fu">ggplot</span>() <span class="sc">+</span></span>
+<span id="cb31-55"><a href="#cb31-55" aria-hidden="true" tabindex="-1"></a>    <span class="co"># ADT</span></span>
+<span id="cb31-56"><a href="#cb31-56" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_segment</span>(<span class="at">data =</span> adt_transfer_data, </span>
+<span id="cb31-57"><a href="#cb31-57" aria-hidden="true" tabindex="-1"></a>                 <span class="fu">aes</span>(<span class="at">x =</span> event_start, <span class="at">xend =</span> event_end,<span class="at">y =</span> <span class="st">&#39;ADT&#39;</span>, <span class="at">yend =</span> <span class="st">&#39;ADT&#39;</span>, </span>
+<span id="cb31-58"><a href="#cb31-58" aria-hidden="true" tabindex="-1"></a>                     <span class="at">color =</span> careunit, <span class="at">size =</span> icu_ccu), <span class="at">show.legend =</span> <span class="cn">TRUE</span>) <span class="sc">+</span></span>
+<span id="cb31-59"><a href="#cb31-59" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_size_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">&quot;ICU/CCU&quot;</span> <span class="ot">=</span> <span class="fl">5.0</span>, <span class="st">&quot;Other&quot;</span> <span class="ot">=</span> <span class="fl">1.0</span>), </span>
+<span id="cb31-60"><a href="#cb31-60" aria-hidden="true" tabindex="-1"></a>                      <span class="at">guide =</span> <span class="cn">FALSE</span>) <span class="sc">+</span></span>
+<span id="cb31-61"><a href="#cb31-61" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb31-62"><a href="#cb31-62" aria-hidden="true" tabindex="-1"></a>    <span class="co"># LAB</span></span>
+<span id="cb31-63"><a href="#cb31-63" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_point</span>(<span class="at">data =</span> lab_data, <span class="fu">aes</span>(<span class="at">x =</span> charttime, <span class="at">y =</span> <span class="st">&#39;LAB&#39;</span>), </span>
+<span id="cb31-64"><a href="#cb31-64" aria-hidden="true" tabindex="-1"></a>               <span class="at">shape =</span> <span class="dv">3</span>, <span class="at">size =</span> <span class="dv">3</span>, <span class="at">show.legend =</span> <span class="cn">FALSE</span>) <span class="sc">+</span></span>
+<span id="cb31-65"><a href="#cb31-65" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb31-66"><a href="#cb31-66" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Procedure</span></span>
+<span id="cb31-67"><a href="#cb31-67" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_point</span>(<span class="at">data =</span> selected_procedures, </span>
+<span id="cb31-68"><a href="#cb31-68" aria-hidden="true" tabindex="-1"></a>               <span class="fu">aes</span>(<span class="at">x =</span> chartdate, <span class="at">y =</span> <span class="st">&#39;Procedure&#39;</span>, <span class="at">shape =</span> procedure_type), </span>
+<span id="cb31-69"><a href="#cb31-69" aria-hidden="true" tabindex="-1"></a>               <span class="at">size =</span> <span class="dv">3</span>, <span class="at">show.legend =</span> <span class="cn">TRUE</span>) <span class="sc">+</span></span>
+<span id="cb31-70"><a href="#cb31-70" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb31-71"><a href="#cb31-71" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> title, <span class="at">subtitle =</span> subtitle, <span class="at">x =</span> <span class="st">&quot;Calendar Time&quot;</span>, <span class="at">y =</span> <span class="st">&quot;&quot;</span>) <span class="sc">+</span></span>
+<span id="cb31-72"><a href="#cb31-72" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">&quot;bottom&quot;</span>,</span>
+<span id="cb31-73"><a href="#cb31-73" aria-hidden="true" tabindex="-1"></a>          <span class="at">legend.box =</span> <span class="st">&quot;vertical&quot;</span>, </span>
+<span id="cb31-74"><a href="#cb31-74" aria-hidden="true" tabindex="-1"></a>          <span class="at">legend.box.background =</span> <span class="fu">element_rect</span>(<span class="at">colour =</span> <span class="st">&quot;transparent&quot;</span>), </span>
+<span id="cb31-75"><a href="#cb31-75" aria-hidden="true" tabindex="-1"></a>          <span class="at">legend.margin =</span> <span class="fu">margin</span>(<span class="at">t =</span> <span class="dv">0</span>, <span class="at">unit =</span> <span class="st">&quot;cm&quot;</span>)) <span class="sc">+</span></span>
+<span id="cb31-76"><a href="#cb31-76" aria-hidden="true" tabindex="-1"></a>    <span class="fu">guides</span>(<span class="at">color =</span> <span class="fu">guide_legend</span>(<span class="at">title =</span> <span class="st">&quot;Care Unit&quot;</span>, </span>
+<span id="cb31-77"><a href="#cb31-77" aria-hidden="true" tabindex="-1"></a>                                <span class="at">override.aes =</span> <span class="fu">list</span>(<span class="at">shape =</span> <span class="cn">NA</span>), <span class="at">ncol =</span> <span class="dv">3</span>),</span>
+<span id="cb31-78"><a href="#cb31-78" aria-hidden="true" tabindex="-1"></a>           <span class="at">shape =</span> <span class="fu">guide_legend</span>(<span class="at">title =</span> <span class="st">&quot;Procedure&quot;</span>, </span>
+<span id="cb31-79"><a href="#cb31-79" aria-hidden="true" tabindex="-1"></a>                                <span class="at">override.aes =</span> </span>
+<span id="cb31-80"><a href="#cb31-80" aria-hidden="true" tabindex="-1"></a>                                  <span class="fu">list</span>(<span class="at">linetype =</span> <span class="st">&quot;blank&quot;</span>, <span class="at">size =</span> <span class="dv">3</span>), </span>
+<span id="cb31-81"><a href="#cb31-81" aria-hidden="true" tabindex="-1"></a>                                <span class="at">ncol =</span> <span class="dv">1</span>)) <span class="sc">+</span></span>
+<span id="cb31-82"><a href="#cb31-82" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_y_discrete</span>(<span class="at">limits =</span> <span class="fu">c</span>(<span class="st">&#39;Procedure&#39;</span>, <span class="st">&#39;LAB&#39;</span>, <span class="st">&#39;ADT&#39;</span>))</span>
+<span id="cb31-83"><a href="#cb31-83" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb31-84"><a href="#cb31-84" aria-hidden="true" tabindex="-1"></a>  ICU_plot <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(<span class="at">data =</span> chartevents_data) <span class="sc">+</span> </span>
+<span id="cb31-85"><a href="#cb31-85" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_line</span>(<span class="at">mapping =</span> </span>
+<span id="cb31-86"><a href="#cb31-86" aria-hidden="true" tabindex="-1"></a>                <span class="fu">aes</span>(<span class="at">x =</span> charttime, <span class="at">y =</span> valuenum, <span class="at">color =</span> abbreviation)) <span class="sc">+</span></span>
+<span id="cb31-87"><a href="#cb31-87" aria-hidden="true" tabindex="-1"></a>    <span class="fu">facet_grid</span>(abbreviation <span class="sc">~</span> stay_id, <span class="at">scales =</span> <span class="st">&quot;free&quot;</span>) <span class="sc">+</span></span>
+<span id="cb31-88"><a href="#cb31-88" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_point</span>(<span class="at">mapping =</span> <span class="fu">aes</span>(<span class="at">x =</span> charttime, <span class="at">y =</span> valuenum, </span>
+<span id="cb31-89"><a href="#cb31-89" aria-hidden="true" tabindex="-1"></a>    <span class="at">color =</span> abbreviation), <span class="at">size =</span> <span class="dv">1</span>) <span class="sc">+</span> </span>
+<span id="cb31-90"><a href="#cb31-90" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="fu">paste</span>(<span class="st">&quot;Patient&quot;</span>, id, <span class="st">&quot;ICU stays - Vitals&quot;</span>),</span>
+<span id="cb31-91"><a href="#cb31-91" aria-hidden="true" tabindex="-1"></a>         <span class="at">x =</span> <span class="st">&quot;Time&quot;</span>,</span>
+<span id="cb31-92"><a href="#cb31-92" aria-hidden="true" tabindex="-1"></a>         <span class="at">y =</span> <span class="st">&quot;Vital Value&quot;</span>) <span class="sc">+</span></span>
+<span id="cb31-93"><a href="#cb31-93" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme</span>() <span class="sc">+</span></span>
+<span id="cb31-94"><a href="#cb31-94" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">&quot;none&quot;</span>) <span class="sc">+</span> </span>
+<span id="cb31-95"><a href="#cb31-95" aria-hidden="true" tabindex="-1"></a>    <span class="fu">guides</span>(<span class="at">x =</span> <span class="fu">guide_axis</span>(<span class="at">n.dodge =</span> <span class="dv">2</span>))</span>
+<span id="cb31-96"><a href="#cb31-96" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb31-97"><a href="#cb31-97" aria-hidden="true" tabindex="-1"></a>  result <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="at">ADT_plot =</span> ADT_plot, <span class="at">ICU_plot =</span> ICU_plot)</span>
+<span id="cb31-98"><a href="#cb31-98" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(result)</span>
+<span id="cb31-99"><a href="#cb31-99" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>server <span class="ot">&lt;-</span> <span class="cf">function</span>(input, output, session) {</span>
