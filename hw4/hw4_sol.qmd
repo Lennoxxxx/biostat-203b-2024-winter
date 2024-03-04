@@ -147,7 +147,7 @@ Connect to `chartevents` table and retrieve a subset that only contain subjects 
 chartevents_tble <- tbl(con_bq, "chartevents") |>
   select(subject_id, stay_id, itemid, charttime, storetime, valuenum) |>
   filter(itemid %in% 
-           c(220045, 220181, 220179, 223761, 220210)) |>
+           c(220045, 220180, 220179, 223761, 220210)) |>
   left_join(select(tbl(con_bq, "d_items"), itemid, label), by = "itemid") |>
   inner_join(select(icustays_tble, subject_id, intime, outtime), 
              by = "subject_id") |>
@@ -171,7 +171,7 @@ chartevents_tble <- tbl(con_bq, "chartevents") |>
     heart_rate = `Heart Rate`,
     non_invasive_blood_pressure_systolic = 
       `Non Invasive Blood Pressure systolic`,
-    non_invasive_blood_pressure_mean = `Non Invasive Blood Pressure mean`,
+    non_invasive_blood_pressure_diastolic = `Non Invasive Blood Pressure diastolic`,
     respiratory_rate = `Respiratory Rate`,
     temperature_fahrenheit = `Temperature Fahrenheit`
   ) |>
@@ -353,7 +353,7 @@ ui <- dashboardPage(
                     selectInput("vital_sign", "Select Vital Sign:", 
                                 choices = c("heart_rate", 
                                         "non_invasive_blood_pressure_systolic", 
-                                        "non_invasive_blood_pressure_mean", 
+                                        "non_invasive_blood_pressure_diastolic", 
                                         "respiratory_rate", 
                                         "temperature_fahrenheit")),
                     plotOutput("vital_plot"))
@@ -545,7 +545,7 @@ server <- function(input, output, session) {
   output$vital_summary_table <- DT::renderDataTable({
     summary_df <- sapply(
       mimic_icu_cohort[, c("heart_rate", "non_invasive_blood_pressure_systolic", 
-                           "non_invasive_blood_pressure_mean", 
+                           "non_invasive_blood_pressure_diastolic", 
                            "respiratory_rate", "temperature_fahrenheit")], 
       function(x) c(max = max(x, na.rm = TRUE), 
                     min = min(x, na.rm = TRUE), 
