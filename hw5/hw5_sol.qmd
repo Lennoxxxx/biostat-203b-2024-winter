@@ -1,7 +1,7 @@
 ---
 title: "Biostat 203B Homework 5"
 subtitle: Due Mar 22 @ 11:59PM
-author: "Your Name and UID"
+author: "Wenbo Zhao 806074910"
 format:
   html:
     theme: cosmo
@@ -11,6 +11,18 @@ format:
     toc-depth: 4
     toc-location: left
     code-fold: false
+knitr:
+  opts_chunk: 
+    cache: false    
+    echo: true
+    fig.align: 'center'
+    fig.width: 6
+    fig.height: 4
+    message: FALSE
+execute:
+  eval: true    
+editor_options: 
+  chunk_output_type: inline
 ---
 
 ## Predicting ICU duration
@@ -18,6 +30,26 @@ format:
 Using the ICU cohort `mimiciv_icu_cohort.rds` you built in Homework 4, develop at least three machine learning approaches (logistic regression with enet regularization, random forest, boosting, SVM, MLP, etc) plus a model stacking approach for predicting whether a patient's ICU stay will be longer than 2 days. You should use the `los_long` variable as the outcome. You algorithms can use patient demographic information (gender, age at ICU `intime`, marital status, race), ICU admission information (first care unit), the last lab measurements before the ICU stay, and first vital measurements during ICU stay as features. You are welcome to use any feature engineering techniques you think are appropriate; but make sure to not use features that are not available at an ICU stay's `intime`. For instance, `last_careunit` cannot be used in your algorithms. 
 
 1. Data preprocessing and feature engineering.
+```{r}
+library(dbplyr)
+library(DBI)
+library(gt)
+library(gtsummary)
+library(tidyverse)
+library(tidymodels)
+```
+```{r}
+mimic_icu_cohort <- readRDS("mimic_icu_cohort.rds")
+mimic_icu_cohort |> 
+  select(race, insurance, marital_status, gender, age_at_intime, 
+  Bicarbonate, Chloride, Creatinine, Glucose, Potassium, Sodium, 
+  Hematocrit, white_blood_cells,
+  heart_rate, non_invasive_blood_pressure_systolic, 
+  non_invasive_blood_pressure_diastolic, 
+  respiratory_rate, temperature_fahrenheit, los_long) |>
+  print(width = Inf)
+```
+
 
 2. Partition data into 50% training set and 50% test set. Stratify partitioning according to `los_long`. For grading purpose, sort the data by `subject_id`, `hadm_id`, and `stay_id` and use the seed `203` for the initial data split. Below is the sample code.
 ```{r}
