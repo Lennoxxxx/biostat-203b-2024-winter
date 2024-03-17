@@ -29,6 +29,8 @@ editor_options:
 
 Using the ICU cohort `mimiciv_icu_cohort.rds` you built in Homework 4, develop at least three machine learning approaches (logistic regression with enet regularization, random forest, boosting, SVM, MLP, etc) plus a model stacking approach for predicting whether a patient's ICU stay will be longer than 2 days. You should use the `los_long` variable as the outcome. You algorithms can use patient demographic information (gender, age at ICU `intime`, marital status, race), ICU admission information (first care unit), the last lab measurements before the ICU stay, and first vital measurements during ICU stay as features. You are welcome to use any feature engineering techniques you think are appropriate; but make sure to not use features that are not available at an ICU stay's `intime`. For instance, `last_careunit` cannot be used in your algorithms. 
 
+## Data Preprocessing
+
 1. Data preprocessing and feature engineering.
 ```{r}
 library(dbplyr)
@@ -41,6 +43,7 @@ library(keras)
 library(ranger)
 library(stacks)
 library(xgboost)
+library(glmnet)
 ```
 ```{r}
 mimic_icu_cohort <- readRDS("mimic_icu_cohort.rds")
@@ -54,16 +57,7 @@ mimic_icu_cohort <- mimic_icu_cohort |>
   mutate(los_long = as.factor(los_long)) |>
   print(width = Inf)
 ```
-```{r}
-missing_data_cols <-mimic_icu_cohort %>%
-  summarise(across(everything(), ~anyNA(.))) %>%
-  pivot_longer(everything(), names_to = "column", values_to = "has_missing") %>%
-  filter(has_missing) %>%
-  select(column)
 
-# Print columns with missing data
-print(missing_data_cols)
-```
 ```{r}
 table_summary <- tbl_summary(
   data = mimic_icu_cohort,
@@ -108,8 +102,10 @@ recipe <- recipe(los_long ~ ., data = train_set) %>%
   step_normalize(all_numeric(), -all_outcomes())
 ```
 
-3. Train and tune the models using the training set.
 ## Train and Tune Models
+
+3. Train and tune the models using the training set.
+
 ### Logistic Regression
 ```{r}
 logit_mod <- 
@@ -174,6 +170,7 @@ best_logit <- logit_res |>
   select_best("roc_auc")
 best_logit
 ```
+
 ### Random Forest
 ```{r}
 rf_mod <- 
@@ -220,23 +217,6 @@ if (file.exists(file_path)) {
 ```
 
 ```{r}
-file_path <- "rf_fit.RData"
-
-if (file.exists(file_path)) {
-  load(file_path)
-} else {
-  rf_fit <- rf_wf |>
-    tune_grid(
-      resamples = folds,
-      grid = rf_grid,
-      metrics = metric_set(roc_auc, accuracy)
-    )
-  
-  save(rf_fit, file = file_path)
-}
-
-```
-```{r}
 rf_res |>
   collect_metrics() |>
   print(width = Inf) |>
@@ -251,6 +231,7 @@ best_rf <- rf_res |>
   select_best("roc_auc")
 best_rf
 ```
+
 ### Boost
 ```{r}
 gb_mod <- 
@@ -275,7 +256,6 @@ gb_grid <- grid_regular(
   learn_rate(range = c(-5, 2), trans = log10_trans()),
   levels = c(3, 10)
   )
-gb_grid
 ```
 ```{r}
 file_path <- "gb_res.RData"
@@ -308,99 +288,6 @@ gb_res |>
 best_gb <- gb_res |>
   select_best("roc_auc")
 best_gb
-```
-
-### MLP
-```{r}
-library(reticulate)
-library(tensorflow)
-
-# Specify the Python environment if necessary
-use_python("/home/lennox/anaconda3/envs/tf/bin/python", required = TRUE)
-
-# Install TensorFlow
-install_tensorflow()
-
-```
-```{r}
-mlp_mod <- 
-  mlp(
-    mode = "classification",
-    hidden_units = tune(),
-    dropout = tune(),
-    epochs = 50,
-  ) |> 
-  set_engine("keras", verbose = 0)
-mlp_mod
-```
-```{r}
-mlp_wf <- workflow() |>
-  add_recipe(recipe) |>
-  add_model(mlp_mod)
-mlp_wf
-```
-```{r}
-mlp_grid <- grid_regular(
-  hidden_units(range = c(20, 25)),
-  dropout(range = c(0, 0.3)),
-  levels = 3
-  )
-
-```
-
-```{r}
-file_path <- "mlp_res.RData"
-
-if (file.exists(file_path)) {
-  load(file_path)
-} else {
-  mlp_res <- tune_grid(
-    object = mlp_wf, 
-    resamples = folds, 
-    grid = mlp_grid,
-    control = control_stack_grid()
-  )
-  
-  save(mlp_res, file = file_path)
-}
-
-```
-
-```{r}
-file_path <- "mlp_fit.RData"
-
-if (file.exists(file_path)) {
-  load(file_path)
-} else {
-  mlp_fit <- mlp_wf |>
-    tune_grid(
-      resamples = folds,
-      grid = mlp_grid,
-      metrics = metric_set(roc_auc, accuracy)
-    )
-
-  save(mlp_fit, file = file_path)
-}
-
-```
-```{r}
-mlp_fit
-```
-
-```{r}
-mlp_res |>
-  collect_metrics() |>
-  print(width = Inf) |>
-  filter(.metric == "roc_auc") |>
-  ggplot(mapping = aes(x = dropout, y = mean, color = factor(hidden_units))) +
-  geom_point() +
-  labs(x = "Dropout Rate", y = "CV AUC") +
-  scale_x_log10()
-```
-```{r}
-best_mlp <- mlp_res |>
-  select_best("roc_auc")
-best_mlp
 ```
 
 ### Model Stacking
@@ -439,13 +326,10 @@ autoplot(icu_model_st, type = "members")
 ```{r}
 autoplot(icu_model_st, type = "weights")
 ```
-```{r}
-collect_parameters(heart_model_st, "rf_res")
-```
-
-
-4. Compare model classification performance on the test set. Report both the area under ROC curve and accuracy for each machine learning algorithm and the model stacking. Interpret the results. What are the most important features in predicting long ICU stays? How do the models compare in terms of performance and interpretability?
 ## Model Performance
+4. Compare model classification performance on the test set. Report both the area under ROC curve and accuracy for each machine learning algorithm and the model stacking. Interpret the results. What are the most important features in predicting long ICU stays? How do the models compare in terms of performance and interpretability?
+
+
 ### Logstic Regression
 ```{r}
 logit_wf_best <- logit_wf |>
@@ -460,6 +344,44 @@ logit_best_fit
 # Test metrics
 logit_best_fit |> 
   collect_metrics()
+```
+```{r}
+#Feature importance
+fitted_workflow <- logit_best_fit$.workflow[[1]]
+fitted_model <- extract_fit_parsnip(fitted_workflow)
+tidy_coefficients <- tidy(fitted_model)
+
+race_total <- tidy_coefficients  %>%
+  filter(str_detect(term, "race_")) %>%
+  summarise(term = "race", estimate = sum(abs(estimate)), 
+            penalty = first(penalty))
+
+gender_total <- tidy_coefficients  %>%
+  filter(str_detect(term, "gender_")) %>%
+  summarise(term = "gender", estimate = sum(abs(estimate)), 
+            penalty = first(penalty))
+
+insurance_total <- tidy_coefficients  %>%
+  filter(str_detect(term, "insurance_")) %>%
+  summarise(term = "insurance", estimate = sum(abs(estimate)), 
+            penalty = first(penalty))
+
+marital_status_total <- tidy_coefficients  %>%
+  filter(str_detect(term, "marital_status_")) %>%
+  summarise(term = "marital_status", estimate = sum(abs(estimate)), 
+            penalty = first(penalty))
+
+tidy_coefficients <- tidy_coefficients %>%
+  filter(!str_detect(term, "race_"), !str_detect(term, "gender_"),
+         !str_detect(term, "insurance_"), 
+         !str_detect(term, "marital_status_")) %>%
+  bind_rows(race_total, gender_total, 
+            insurance_total, marital_status_total) %>%
+  mutate(estimate = abs(estimate)) %>%
+  arrange(desc(estimate))
+  
+tidy_coefficients
+
 ```
 
 ### Random Forest
@@ -478,22 +400,7 @@ rf_best_fit |>
   collect_metrics()
 ```
 
-### MLP 
-
-```{r}
-mlp_best_wf <- mlp_wf |>
-  finalize_workflow(best_mlp)
-
-mlp_best_fit <- 
-  mlp_best_wf |>
-  last_fit(data_split)
-```
-```{r}
-mlp_best_fit |> 
-  collect_metrics()
-```
-
-### MLP 
+### Boost
 
 ```{r}
 gb_best_wf <- gb_wf |>
@@ -519,7 +426,7 @@ icu_pred <- test_set %>%
 auc_result <- roc_auc(
   icu_pred,
   truth = los_long,  
-  contains(".pred_No")
+  contains(".pred_FALSE")
 )
 
 print(auc_result)
@@ -527,7 +434,8 @@ print(auc_result)
 
 ```{r}
 icu_pred$.pred_class <- ifelse(icu_pred$.pred_TRUE > 0.5, "TRUE", "FALSE")
-
+icu_pred <- icu_pred |>
+  mutate(.pred_class = as.factor(.pred_class))
 accuracy_result <- accuracy(
   data = icu_pred,
   truth = los_long,  
@@ -547,7 +455,7 @@ rf_metrics <- rf_best_fit |>
   collect_metrics() %>%
   filter(.metric %in% c("roc_auc", "accuracy"))
 
-mlp_metrics <- mlp_best_fit |> 
+gb_metrics <- gb_best_fit |> 
   collect_metrics() %>%
   filter(.metric %in% c("roc_auc", "accuracy"))
 
@@ -555,18 +463,27 @@ stacking_auc <- auc_result$.estimate
 stacking_accuracy <- accuracy_result$.estimate
 
 model_performance <- tibble(
-  Model = c("Logistic Regression", "Random Forest", "MLP", "Stacking Model"),
+  Model = c("Logistic Regression", "Random Forest", "Boost", "Stacking Model"),
   AUC = c(logit_metrics$.estimate[logit_metrics$.metric == "roc_auc"], 
           rf_metrics$.estimate[rf_metrics$.metric == "roc_auc"], 
-          mlp_metrics$.estimate[mlp_metrics$.metric == "roc_auc"], 
+          gb_metrics$.estimate[gb_metrics$.metric == "roc_auc"], 
           stacking_auc),
   Accuracy = c(logit_metrics$.estimate[logit_metrics$.metric == "accuracy"], 
                rf_metrics$.estimate[rf_metrics$.metric == "accuracy"], 
-               mlp_metrics$.estimate[mlp_metrics$.metric == "accuracy"], 
+               gb_metrics$.estimate[gb_metrics$.metric == "accuracy"], 
                stacking_accuracy)
 )
 
 print(model_performance)
 
 ```
+**Model Performance Ranking: **
+The Stacking Model performs the best in terms of both AUC and accuracy, followed by the Boosting Model, Random Forest, and Logistic Regression. This ranking indicates that combining multiple models through stacking effectively leverages their individual strengths, leading to improved predictive performance.
 
+In terms of performance metrics (AUC and accuracy), all models have some ability to distinguish between classes, but none are exceptionally high. Besides, all models perform relatively close to each other, with only a marginal difference between the best and worst.
+
+
+**Feature Importance and Interpretability:**
+According to the feature importance analysis based on Logistic Regression model, the most significant features when deciding if a patient will stay in ICU for more than two days are `heart_rate`, `age_at_intime`, `non_invasive_blood_pressure_systolic`, `white_blood_cells` and `Hematocrit`. While features like `Bicarbonate`, `Glucose` and `non_invasive_blood_pressure_diastolic` basically have no effcet on the ICU stay.
+
+In terms of interpretability, as the model becomes more complex, it will become less interpretable but offer a better performance. Logistic Regression, despite being the least accurate, offers the highest interpretability. Random Forest and Boosting Models, while more accurate, are less interpretable due to their complexity. The Stacking Model, despite its superior performance, is the least interpretable as it combines predictions from multiple models.
